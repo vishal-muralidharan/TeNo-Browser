@@ -201,6 +201,99 @@ export default function LinkStorer({ collectionName = 'saved_links', title = 'Sa
     }
   };
 
+  const favoriteLinks = links.filter((link) => link.isFavorite);
+  const otherLinks = links.filter((link) => !link.isFavorite);
+
+  const renderLinkCells = (sectionLinks, startIndex = 0) => {
+    if (sectionLinks.length === 0) {
+      return <p className="section-empty">No items yet</p>;
+    }
+
+    return (
+      <div className="list-container">
+        {sectionLinks.map((link, localIndex) => {
+          const index = startIndex + localIndex;
+          return (
+            <React.Fragment key={link.id}>
+              <div className="list-item">
+                <div className="item-content" onClick={() => handleOpen(link.url)}>
+                  <img
+                    src={`https://s2.googleusercontent.com/s2/favicons?domain=${link.domain}&sz=64`}
+                    onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'block'; }}
+                    alt="favicon"
+                    className="favicon"
+                  />
+                  <Globe className="fallback-icon" size={22} style={{ display: 'none' }} />
+
+                  <div className="item-text-stack">
+                    <span className="item-text">
+                      {index < 9 && <span style={{ opacity: 0.5, marginRight: '6px', fontSize: '0.9em' }}>[{index + 1}]</span>}
+                      {link.nickname}
+                    </span>
+                    {link.description && <span className="item-desc">{link.description}</span>}
+                  </div>
+                </div>
+
+                <div className="item-actions">
+                  <div className="order-controls" style={{ display: 'flex', flexDirection: 'column', padding: '0 2px', gap: '0px' }}>
+                    <button
+                      className="icon-btn"
+                      onClick={(e) => handleMoveUp(e, index)}
+                      disabled={index === 0 || link.isFavorite !== links[index - 1]?.isFavorite}
+                      style={{ padding: '0px', border: 'none', height: '12px', lineHeight: 1 }}
+                    >
+                      <ChevronUp size={12} opacity={(index === 0 || link.isFavorite !== links[index - 1]?.isFavorite) ? 0.3 : 0.8} />
+                    </button>
+                    <button
+                      className="icon-btn"
+                      onClick={(e) => handleMoveDown(e, index)}
+                      disabled={index === links.length - 1 || link.isFavorite !== links[index + 1]?.isFavorite}
+                      style={{ padding: '0px', border: 'none', height: '12px', lineHeight: 1 }}
+                    >
+                      <ChevronDown size={12} opacity={(index === links.length - 1 || link.isFavorite !== links[index + 1]?.isFavorite) ? 0.3 : 0.8} />
+                    </button>
+                  </div>
+
+                  <button
+                    className={`icon-btn ${link.isFavorite ? 'favorited' : ''}`}
+                    onClick={(e) => { e.stopPropagation(); toggleFavorite(link.id, link.isFavorite); }}
+                  >
+                    <Star size={20} fill={link.isFavorite ? 'var(--color-accent)' : 'none'} />
+                  </button>
+
+                  <div className="menu-wrapper">
+                    <button
+                      className="icon-btn"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setActiveMenu(activeMenu === link.id ? null : link.id);
+                      }}
+                    >
+                      <MoreVertical size={14} />
+                    </button>
+                    {activeMenu === link.id && (
+                      <div className="dropdown-menu" onClick={(e) => e.stopPropagation()}>
+                        <button onClick={() => handleOpen(link.url, true)}>
+                          <ExternalLink size={14} /> New Window
+                        </button>
+                        <button onClick={() => requestEdit(link)}>
+                          <Edit2 size={14} /> Edit
+                        </button>
+                        <button className="danger" onClick={() => requestDelete(link.id)}>
+                          <Trash2 size={14} /> Delete
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </React.Fragment>
+          );
+        })}
+      </div>
+    );
+  };
+
   return (
     <div className="tab-pane">
       <button 
@@ -238,85 +331,15 @@ export default function LinkStorer({ collectionName = 'saved_links', title = 'Sa
 
       <h2 className="tab-title">{title}</h2>
 
-      <div className="list-container">
-        {links.map((link, index) => {
-          return (
-          <React.Fragment key={link.id}>
-            <div className="list-item">
-            <div className="item-content" onClick={() => handleOpen(link.url)}>
-              <img
-                src={`https://s2.googleusercontent.com/s2/favicons?domain=${link.domain}&sz=64`}
-                onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'block'; }}
-                alt="favicon"
-                className="favicon"
-              />
-              <Globe className="fallback-icon" size={22} style={{ display: 'none' }} />
+      <section className="section-block">
+        <h3 className="section-title">favourites</h3>
+        {renderLinkCells(favoriteLinks, 0)}
+      </section>
 
-              <div className="item-text-stack">
-                <span className="item-text">
-                  {index < 9 && <span style={{ opacity: 0.5, marginRight: '6px', fontSize: '0.9em' }}>[{index + 1}]</span>}
-                  {link.nickname}
-                </span>
-                {link.description && <span className="item-desc">{link.description}</span>}
-              </div>
-            </div>
-
-            <div className="item-actions">
-              <div className="order-controls" style={{ display: 'flex', flexDirection: 'column', padding: '0 2px', gap: '0px' }}>
-                <button
-                  className="icon-btn"
-                  onClick={(e) => handleMoveUp(e, index)}
-                  disabled={index === 0 || link.isFavorite !== links[index - 1]?.isFavorite}
-                  style={{ padding: '0px', border: 'none', height: '12px', lineHeight: 1 }}
-                >
-                  <ChevronUp size={12} opacity={(index === 0 || link.isFavorite !== links[index - 1]?.isFavorite) ? 0.3 : 0.8} />
-                </button>
-                <button
-                  className="icon-btn"
-                  onClick={(e) => handleMoveDown(e, index)}
-                  disabled={index === links.length - 1 || link.isFavorite !== links[index + 1]?.isFavorite}
-                  style={{ padding: '0px', border: 'none', height: '12px', lineHeight: 1 }}
-                >
-                  <ChevronDown size={12} opacity={(index === links.length - 1 || link.isFavorite !== links[index + 1]?.isFavorite) ? 0.3 : 0.8} />
-                </button>
-              </div>
-
-              <button
-                className={`icon-btn ${link.isFavorite ? 'favorited' : ''}`}
-                onClick={(e) => { e.stopPropagation(); toggleFavorite(link.id, link.isFavorite); }}
-              >
-                <Star size={20} fill={link.isFavorite ? 'var(--color-accent)' : 'none'} />
-              </button>
-
-              <div className="menu-wrapper">
-                <button
-                  className="icon-btn"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setActiveMenu(activeMenu === link.id ? null : link.id);
-                  }}
-                >
-                  <MoreVertical size={14} />
-                </button>
-                {activeMenu === link.id && (
-                  <div className="dropdown-menu" onClick={(e) => e.stopPropagation()}>
-                    <button onClick={() => handleOpen(link.url, true)}>
-                      <ExternalLink size={14} /> New Window
-                    </button>
-                    <button onClick={() => requestEdit(link)}>
-                      <Edit2 size={14} /> Edit
-                    </button>
-                    <button className="danger" onClick={() => requestDelete(link.id)}>
-                      <Trash2 size={14} /> Delete
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-          </React.Fragment>
-        )})}
-      </div>
+      <section className="section-block">
+        <h3 className="section-title">other links</h3>
+        {renderLinkCells(otherLinks, favoriteLinks.length)}
+      </section>
 
       {pendingDelete && (
         <div className="custom-modal-overlay">
