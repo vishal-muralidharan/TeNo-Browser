@@ -240,10 +240,8 @@ export default function LinkStorer({ collectionName = 'saved_links', title = 'Sa
 
       <div className="list-container">
         {links.map((link, index) => {
-          const isTransition = index > 0 && links[index - 1].isFavorite && !link.isFavorite;
           return (
           <React.Fragment key={link.id}>
-            {isTransition && <div style={{ borderBottom: '1px dashed var(--color-border)', margin: '4px 0' }} />}
             <div className="list-item">
             <div className="item-content" onClick={() => handleOpen(link.url)}>
               <img
