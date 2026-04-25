@@ -339,13 +339,13 @@ button.danger:hover {
   gap: 10px;
   cursor: pointer;
   flex: 1;
-  overflow: hidden;
+  overflow: visible;
   width: 100%;
 }
 
 .favicon {
-  width: 18px;
-  height: 18px;
+  width: 24px;
+  height: 24px;
   flex-shrink: 0;
   filter: grayscale(100%) contrast(200%);
 }
@@ -353,7 +353,7 @@ button.danger:hover {
 .item-text-stack {
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  overflow: visible;
   gap: 2px;
 }
 
@@ -361,10 +361,11 @@ button.danger:hover {
   font-size: 1.02rem;
   color: var(--color-text-main);
   white-space: normal;
-  overflow: hidden;
+  overflow: visible;
   font-weight: 500;
   line-height: 1.25;
-  max-height: 2.5em;
+  max-height: none;
+  word-break: break-word;
 }
 
 .item-desc {

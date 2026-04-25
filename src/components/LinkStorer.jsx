@@ -245,13 +245,12 @@ export default function LinkStorer({ collectionName = 'saved_links', title = 'Sa
             <div className="list-item">
             <div className="item-content" onClick={() => handleOpen(link.url)}>
               <img
-                src={`https://s2.googleusercontent.com/s2/favicons?domain=${link.domain}&sz=32`}
+                src={`https://s2.googleusercontent.com/s2/favicons?domain=${link.domain}&sz=64`}
                 onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'block'; }}
                 alt="favicon"
                 className="favicon"
-                style={{ width: '16px', height: '16px' }}
               />
-              <Globe className="fallback-icon" size={14} style={{ display: 'none' }} />
+              <Globe className="fallback-icon" size={22} style={{ display: 'none' }} />
 
               <div className="item-text-stack">
                 <span className="item-text">
@@ -286,7 +285,7 @@ export default function LinkStorer({ collectionName = 'saved_links', title = 'Sa
                 className={`icon-btn ${link.isFavorite ? 'favorited' : ''}`}
                 onClick={(e) => { e.stopPropagation(); toggleFavorite(link.id, link.isFavorite); }}
               >
-                <Star size={14} fill={link.isFavorite ? 'var(--color-accent)' : 'none'} />
+                <Star size={20} fill={link.isFavorite ? 'var(--color-accent)' : 'none'} />
               </button>
 
               <div className="menu-wrapper">
