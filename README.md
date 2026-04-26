@@ -87,18 +87,24 @@ npm install
 
 ### Configure Firebase
 
-Current implementation reads Firebase config from `src/firebase.js`.
+Firebase config is read from environment variables.
 
-1. Open `src/firebase.js`
-2. Replace the `firebaseConfig` object values with your Firebase Web App credentials
-3. Ensure these values are correct in Firebase Console:
-   - apiKey
-   - authDomain
-   - projectId
-   - storageBucket
-   - messagingSenderId
-   - appId
-   - measurementId
+1. Copy `.env.example` to `.env`
+2. Fill in your Firebase Web App values from Firebase Console -> Project Settings -> General -> Your apps (Web)
+3. Set these keys in `.env`:
+  - VITE_FIREBASE_API_KEY
+  - VITE_FIREBASE_AUTH_DOMAIN
+  - VITE_FIREBASE_PROJECT_ID
+  - VITE_FIREBASE_STORAGE_BUCKET
+  - VITE_FIREBASE_MESSAGING_SENDER_ID
+  - VITE_FIREBASE_APP_ID
+  - VITE_FIREBASE_MEASUREMENT_ID
+
+Important:
+
+- `.env` files are git-ignored and should never be committed.
+- For Vercel deploys, add the same keys in Vercel Project Settings -> Environment Variables.
+- Vite variables prefixed with `VITE_` are exposed to the browser by design.
 
 ### Run in Development
 
@@ -142,6 +148,18 @@ Recommended settings:
 - Automatic Deployments: Enabled from connected Git branch
 
 If you later move Firebase config to environment variables, use `VITE_...` prefixed variables in Vercel project settings.
+
+### Fix Google Auth unauthorized-domain Error
+
+If you see `Firebase: Error (auth/unauthorized-domain)` on Vercel:
+
+1. Go to Firebase Console -> Authentication -> Settings -> Authorized domains
+2. Add your deployed domains, for example:
+  - `te-no.vercel.app`
+  - `teno-rho.vercel.app` (or your current Vercel alias)
+  - Any custom domain you attach later
+3. Keep `localhost` for local development
+4. Save and redeploy (or hard refresh) your app
 
 ## Keyboard Shortcuts
 
