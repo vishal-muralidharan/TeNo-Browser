@@ -202,7 +202,6 @@ export default function Reminders({ user }) {
                       <span className="item-text" style={{whiteSpace: 'normal', wordBreak: 'break-word'}}>
                         {r.text}
                       </span>
-                      {r.label && <span className="label-chip">{r.label}</span>}
                     </div>
                   </div>
                   <div className="item-actions">

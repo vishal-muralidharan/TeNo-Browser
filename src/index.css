@@ -372,6 +372,10 @@ button.danger:hover {
   width: 100%;
 }
 
+.reminder-item .item-content {
+  align-items: center;
+}
+
 .favicon {
   width: 24px;
   height: 24px;
