@@ -121,7 +121,7 @@ function Cart({ user }) {
           />
           <input 
             type="text" 
-            placeholder="label (optional)" 
+            placeholder="label" 
             value={label} 
             onChange={(e) => setLabel(e.target.value)} 
             className="mono-input"

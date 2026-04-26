@@ -420,7 +420,7 @@ export default function LinkStorer({ collectionName = 'saved_links', title = 'Sa
         />
         <input
           type="text"
-          placeholder="Label (optional)"
+          placeholder="Label"
           value={label}
           onChange={(e) => setLabel(e.target.value)}
         />
@@ -485,7 +485,7 @@ export default function LinkStorer({ collectionName = 'saved_links', title = 'Sa
                  type="text" 
                  value={editingItem.label} 
                  onChange={e => setEditingItem({...editingItem, label: e.target.value})}
-                 placeholder="Label (optional)"
+                 placeholder="Label"
                />
                <textarea 
                  value={editingItem.description}
