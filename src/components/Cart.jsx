@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { db } from '../firebase';
-import { collection, query, addDoc, deleteDoc, doc, onSnapshot } from 'firebase/firestore';
+import { collection, query, addDoc, deleteDoc, doc, onSnapshot, updateDoc } from 'firebase/firestore';
+import { ChevronUp, ChevronDown } from 'lucide-react';
 
 function Cart({ user }) {
   const [items, setItems] = useState([]);
@@ -13,7 +14,13 @@ function Cart({ user }) {
     if (!user) return;
     const q = query(collection(db, 'users', user.uid, 'cart_items'));
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      setItems(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      data.sort((a, b) => {
+        const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        return timeA - timeB;
+      });
+      setItems(data);
     });
     return unsubscribe;
   }, [user]);
@@ -50,6 +57,38 @@ function Cart({ user }) {
     if (b.label) return 1;
     return 0;
   });
+
+  const displaySections = groupedSections.map((section) => ({
+    key: section.label || '__ungrouped__',
+    title: section.label || 'ungrouped',
+    items: section.items,
+  }));
+
+  const flattenedDisplay = displaySections.flatMap((section) =>
+    section.items.map((item) => ({
+      item,
+      sectionKey: section.key,
+    }))
+  );
+
+  const findItemPosition = (itemId) => flattenedDisplay.findIndex((entry) => entry.item.id === itemId);
+
+  const moveItemWithinLabel = async (e, currentIndex, direction) => {
+    e.stopPropagation();
+    const targetIndex = currentIndex + direction;
+    if (targetIndex < 0 || targetIndex >= flattenedDisplay.length) return;
+
+    const currentEntry = flattenedDisplay[currentIndex];
+    const targetEntry = flattenedDisplay[targetIndex];
+    if (currentEntry.sectionKey !== targetEntry.sectionKey) return;
+
+    const current = currentEntry.item;
+    const target = targetEntry.item;
+    if (current.createdAt && target.createdAt) {
+      await updateDoc(doc(db, 'users', user.uid, 'cart_items', current.id), { createdAt: target.createdAt });
+      await updateDoc(doc(db, 'users', user.uid, 'cart_items', target.id), { createdAt: current.createdAt });
+    }
+  };
 
   const removeItem = async (id) => {
     await deleteDoc(doc(db, 'users', user.uid, 'cart_items', id));
@@ -105,6 +144,24 @@ function Cart({ user }) {
                       {item.url && <span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>{item.url}</span>}
                     </div>
                     <div className="action-col">
+                      <div className="order-controls" style={{ display: 'flex', flexDirection: 'column', padding: '0 2px', gap: '0px' }}>
+                        <button
+                          className="icon-btn"
+                          onClick={(e) => moveItemWithinLabel(e, findItemPosition(item.id), -1)}
+                          disabled={findItemPosition(item.id) <= 0 || flattenedDisplay[findItemPosition(item.id) - 1]?.sectionKey !== (item.label || '__ungrouped__')}
+                          style={{ padding: '0px', border: 'none', height: '12px', lineHeight: 1 }}
+                        >
+                          <ChevronUp size={12} opacity={findItemPosition(item.id) <= 0 || flattenedDisplay[findItemPosition(item.id) - 1]?.sectionKey !== (item.label || '__ungrouped__') ? 0.3 : 0.8} />
+                        </button>
+                        <button
+                          className="icon-btn"
+                          onClick={(e) => moveItemWithinLabel(e, findItemPosition(item.id), 1)}
+                          disabled={findItemPosition(item.id) === -1 || findItemPosition(item.id) >= flattenedDisplay.length - 1 || flattenedDisplay[findItemPosition(item.id) + 1]?.sectionKey !== (item.label || '__ungrouped__')}
+                          style={{ padding: '0px', border: 'none', height: '12px', lineHeight: 1 }}
+                        >
+                          <ChevronDown size={12} opacity={findItemPosition(item.id) === -1 || findItemPosition(item.id) >= flattenedDisplay.length - 1 || flattenedDisplay[findItemPosition(item.id) + 1]?.sectionKey !== (item.label || '__ungrouped__') ? 0.3 : 0.8} />
+                        </button>
+                      </div>
                       {item.url && (
                         <a href={item.url} target="_blank" rel="noopener noreferrer" className="action-icon" title="open link">
                           [ view ]

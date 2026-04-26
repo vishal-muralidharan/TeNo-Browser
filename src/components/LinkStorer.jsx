@@ -79,24 +79,6 @@ export default function LinkStorer({ collectionName = 'saved_links', title = 'Sa
     return () => document.removeEventListener('click', handleClickOutside);
   }, []);
 
-  useEffect(() => {
-    const handleGlobalKeyDown = (e) => {
-      if (!isActive) return;
-      // Don't trigger if user is typing in an input or textarea
-      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-      
-      const keyIndex = parseInt(e.key) - 1;
-      if (!isNaN(keyIndex) && keyIndex >= 0 && keyIndex < 9) {
-        if (links[keyIndex]) {
-          handleOpen(links[keyIndex].url);
-        }
-      }
-    };
-    
-    window.addEventListener('keydown', handleGlobalKeyDown);
-    return () => window.removeEventListener('keydown', handleGlobalKeyDown);
-  }, [links, isActive]);
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!url.trim() || !nickname.trim() || !user) return;
@@ -248,7 +230,63 @@ export default function LinkStorer({ collectionName = 'saved_links', title = 'Sa
     return 0;
   });
 
-  const renderLinkCells = (sectionLinks, startIndex = 0, showLabelChip = true) => {
+  const displaySections = [
+    { key: 'favorites', title: 'favourites', items: favoriteLinks, favoriteGroup: true },
+    ...groupedOtherSections.map((section) => ({
+      key: section.label || '__ungrouped__',
+      title: section.label || 'ungrouped',
+      items: section.items,
+      favoriteGroup: false,
+    })),
+  ];
+
+  const flattenedDisplay = displaySections.flatMap((section) =>
+    section.items.map((link) => ({
+      link,
+      sectionKey: section.key,
+      favoriteGroup: section.favoriteGroup,
+    }))
+  );
+
+  const findItemPosition = (itemId) => flattenedDisplay.findIndex((entry) => entry.link.id === itemId);
+
+  useEffect(() => {
+    const handleGlobalKeyDown = (e) => {
+      if (!isActive) return;
+      // Don't trigger if user is typing in an input or textarea
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+      
+      const keyIndex = parseInt(e.key) - 1;
+      if (!isNaN(keyIndex) && keyIndex >= 0 && keyIndex < 9) {
+        const entry = flattenedDisplay[keyIndex];
+        if (entry) {
+          handleOpen(entry.link.url);
+        }
+      }
+    };
+    
+    window.addEventListener('keydown', handleGlobalKeyDown);
+    return () => window.removeEventListener('keydown', handleGlobalKeyDown);
+  }, [flattenedDisplay, isActive]);
+
+  const handleMoveWithinDisplay = async (e, currentIndex, direction) => {
+    e.stopPropagation();
+    const targetIndex = currentIndex + direction;
+    if (targetIndex < 0 || targetIndex >= flattenedDisplay.length) return;
+
+    const currentEntry = flattenedDisplay[currentIndex];
+    const targetEntry = flattenedDisplay[targetIndex];
+    if (currentEntry.sectionKey !== targetEntry.sectionKey) return;
+
+    const current = currentEntry.link;
+    const target = targetEntry.link;
+    if (current.createdAt && target.createdAt) {
+      await updateDoc(doc(db, 'users', user.uid, collectionName, current.id), { createdAt: target.createdAt });
+      await updateDoc(doc(db, 'users', user.uid, collectionName, target.id), { createdAt: current.createdAt });
+    }
+  };
+
+  const renderLinkCells = (sectionLinks, startIndex = 0, showLabelChip = true, sectionKey = '') => {
     if (sectionLinks.length === 0) {
       return <p className="section-empty">No items yet</p>;
     }
@@ -257,6 +295,11 @@ export default function LinkStorer({ collectionName = 'saved_links', title = 'Sa
       <div className="list-container">
         {sectionLinks.map((link, localIndex) => {
           const index = startIndex + localIndex;
+          const globalIndex = findItemPosition(link.id);
+          const previousEntry = globalIndex > 0 ? flattenedDisplay[globalIndex - 1] : null;
+          const nextEntry = globalIndex < flattenedDisplay.length - 1 ? flattenedDisplay[globalIndex + 1] : null;
+          const canMoveUp = globalIndex > 0 && previousEntry && previousEntry.sectionKey === sectionKey;
+          const canMoveDown = globalIndex < flattenedDisplay.length - 1 && nextEntry && nextEntry.sectionKey === sectionKey;
           return (
             <React.Fragment key={link.id}>
               <div className="list-item">
@@ -271,7 +314,7 @@ export default function LinkStorer({ collectionName = 'saved_links', title = 'Sa
 
                   <div className="item-text-stack">
                     <span className="item-text">
-                      {index < 9 && <span style={{ opacity: 0.5, marginRight: '6px', fontSize: '0.9em' }}>[{index + 1}]</span>}
+                      {globalIndex < 9 && <span style={{ opacity: 0.5, marginRight: '6px', fontSize: '0.9em' }}>[{globalIndex + 1}]</span>}
                       {link.nickname}
                     </span>
                     {showLabelChip && link.label && <span className="label-chip">{link.label}</span>}
@@ -283,19 +326,19 @@ export default function LinkStorer({ collectionName = 'saved_links', title = 'Sa
                   <div className="order-controls" style={{ display: 'flex', flexDirection: 'column', padding: '0 2px', gap: '0px' }}>
                     <button
                       className="icon-btn"
-                      onClick={(e) => handleMoveUp(e, index)}
-                      disabled={index === 0 || link.isFavorite !== links[index - 1]?.isFavorite}
+                      onClick={(e) => handleMoveWithinDisplay(e, globalIndex, -1)}
+                      disabled={!canMoveUp}
                       style={{ padding: '0px', border: 'none', height: '12px', lineHeight: 1 }}
                     >
-                      <ChevronUp size={12} opacity={(index === 0 || link.isFavorite !== links[index - 1]?.isFavorite) ? 0.3 : 0.8} />
+                      <ChevronUp size={12} opacity={canMoveUp ? 0.8 : 0.3} />
                     </button>
                     <button
                       className="icon-btn"
-                      onClick={(e) => handleMoveDown(e, index)}
-                      disabled={index === links.length - 1 || link.isFavorite !== links[index + 1]?.isFavorite}
+                      onClick={(e) => handleMoveWithinDisplay(e, globalIndex, 1)}
+                      disabled={!canMoveDown}
                       style={{ padding: '0px', border: 'none', height: '12px', lineHeight: 1 }}
                     >
-                      <ChevronDown size={12} opacity={(index === links.length - 1 || link.isFavorite !== links[index + 1]?.isFavorite) ? 0.3 : 0.8} />
+                      <ChevronDown size={12} opacity={canMoveDown ? 0.8 : 0.3} />
                     </button>
                   </div>
 
@@ -384,7 +427,7 @@ export default function LinkStorer({ collectionName = 'saved_links', title = 'Sa
 
       <section className="section-block">
         <h3 className="section-title">favourites</h3>
-        {renderLinkCells(favoriteLinks, 0)}
+        {renderLinkCells(favoriteLinks, 0, true, 'favorites')}
       </section>
 
       <section className="section-block">
@@ -395,7 +438,7 @@ export default function LinkStorer({ collectionName = 'saved_links', title = 'Sa
           groupedOtherSections.map((section) => (
             <div key={section.label || 'ungrouped'} className="label-section">
               {section.label ? <h4 className="label-section-title">{section.label}</h4> : <h4 className="label-section-title">ungrouped</h4>}
-              {renderLinkCells(section.items, 0, false)}
+              {renderLinkCells(section.items, 0, false, section.label || '__ungrouped__')}
             </div>
           ))
         )}
