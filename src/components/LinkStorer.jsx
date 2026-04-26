@@ -160,16 +160,36 @@ export default function LinkStorer({ collectionName = 'saved_links', title = 'Sa
   };
 
   const requestEdit = (link) => {
-    setEditingItem({ id: link.id, nickname: link.nickname, description: link.description || '' });
+    setEditingItem({
+      id: link.id,
+      nickname: link.nickname,
+      url: link.url,
+      description: link.description || '',
+    });
     setActiveMenu(null);
   };
 
   const handleEditSave = async (e) => {
     e.preventDefault();
-    if (!editingItem.nickname.trim()) return;
+    if (!editingItem.nickname.trim() || !editingItem.url.trim()) return;
+
+    let cleanUrl = editingItem.url.trim();
+    if (!cleanUrl.startsWith('http://') && !cleanUrl.startsWith('https://')) {
+      cleanUrl = 'https://' + cleanUrl;
+    }
+
+    let domain = '';
+    try {
+      const urlObj = new URL(cleanUrl);
+      domain = urlObj.hostname;
+    } catch (err) {
+      domain = cleanUrl;
+    }
     
     await updateDoc(doc(db, 'users', user.uid, collectionName, editingItem.id), {
        nickname: editingItem.nickname.trim(),
+       url: cleanUrl,
+       domain,
        description: editingItem.description.trim()
     });
     setEditingItem(null);
@@ -362,6 +382,13 @@ export default function LinkStorer({ collectionName = 'saved_links', title = 'Sa
                  type="text" 
                  value={editingItem.nickname} 
                  onChange={e => setEditingItem({...editingItem, nickname: e.target.value})}
+                 placeholder="Nickname"
+               />
+               <input 
+                 type="text" 
+                 value={editingItem.url} 
+                 onChange={e => setEditingItem({...editingItem, url: e.target.value})}
+                 placeholder="URL"
                />
                <textarea 
                  value={editingItem.description}
