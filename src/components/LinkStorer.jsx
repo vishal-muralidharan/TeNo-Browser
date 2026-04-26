@@ -211,34 +211,46 @@ export default function LinkStorer({ collectionName = 'saved_links', title = 'Sa
     }
   };
 
-  const favoriteLinks = links.filter((link) => link.isFavorite);
-  const otherLinks = links.filter((link) => !link.isFavorite);
-  const otherGroupedLinks = otherLinks.reduce((groups, link) => {
-    const groupName = link.label ? link.label.trim().toLowerCase() : '';
-    const key = groupName || '__ungrouped__';
-    if (!groups[key]) {
-      groups[key] = { label: groupName, items: [] };
+  const normalizeLabel = (value) => value.trim().toLowerCase();
+
+  const groupedLinks = links.reduce((groups, link) => {
+    const labelKey = link.label ? normalizeLabel(link.label) : '';
+    const sectionKey = labelKey || (link.isFavorite ? 'favorites' : 'ungrouped');
+
+    if (!groups[sectionKey]) {
+      groups[sectionKey] = {
+        key: sectionKey,
+        label: labelKey,
+        title: sectionKey === 'favorites' ? 'favourites' : sectionKey,
+        items: [],
+      };
     }
-    groups[key].items.push(link);
+
+    groups[sectionKey].items.push(link);
     return groups;
   }, {});
 
-  const groupedOtherSections = Object.values(otherGroupedLinks).sort((a, b) => {
-    if (a.label && b.label) return a.label.localeCompare(b.label);
-    if (a.label) return -1;
-    if (b.label) return 1;
-    return 0;
-  });
+  const displaySections = Object.values(groupedLinks)
+    .map((section) => ({
+      ...section,
+      items: [...section.items].sort((a, b) => {
+        if (section.key !== 'favorites') {
+          if (a.isFavorite && !b.isFavorite) return -1;
+          if (!a.isFavorite && b.isFavorite) return 1;
+        }
 
-  const displaySections = [
-    { key: 'favorites', title: 'favourites', items: favoriteLinks, favoriteGroup: true },
-    ...groupedOtherSections.map((section) => ({
-      key: section.label || '__ungrouped__',
-      title: section.label || 'ungrouped',
-      items: section.items,
-      favoriteGroup: false,
-    })),
-  ];
+        const timeA = a.createdAt ? a.createdAt.toMillis() : 0;
+        const timeB = b.createdAt ? b.createdAt.toMillis() : 0;
+        return timeA - timeB;
+      }),
+    }))
+    .sort((a, b) => {
+      if (a.key === 'favorites') return -1;
+      if (b.key === 'favorites') return 1;
+      if (a.key === 'ungrouped') return 1;
+      if (b.key === 'ungrouped') return -1;
+      return a.label.localeCompare(b.label);
+    });
 
   const flattenedDisplay = displaySections.flatMap((section) =>
     section.items.map((link) => ({
@@ -425,24 +437,20 @@ export default function LinkStorer({ collectionName = 'saved_links', title = 'Sa
 
       <h2 className="tab-title">{title}</h2>
 
-      <section className="section-block">
-        <h3 className="section-title">favourites</h3>
-        {renderLinkCells(favoriteLinks, 0, true, 'favorites')}
-      </section>
-
-      <section className="section-block">
-        <h3 className="section-title">other links</h3>
-        {groupedOtherSections.length === 0 ? (
-          <p className="section-empty">No items yet</p>
-        ) : (
-          groupedOtherSections.map((section) => (
-            <div key={section.label || 'ungrouped'} className="label-section">
-              {section.label ? <h4 className="label-section-title">{section.label}</h4> : <h4 className="label-section-title">ungrouped</h4>}
-              {renderLinkCells(section.items, 0, false, section.label || '__ungrouped__')}
+      {displaySections.map((section) => (
+        <section key={section.key} className="section-block">
+          <h3 className="section-title">{section.title}</h3>
+          {section.key !== 'favorites' && section.key !== 'ungrouped' ? (
+            renderLinkCells(section.items, 0, false, section.key)
+          ) : section.key === 'ungrouped' ? (
+            <div className="label-section">
+              {renderLinkCells(section.items, 0, false, section.key)}
             </div>
-          ))
-        )}
-      </section>
+          ) : (
+            renderLinkCells(section.items, 0, true, section.key)
+          )}
+        </section>
+      ))}
 
       {pendingDelete && (
         <div className="custom-modal-overlay">
