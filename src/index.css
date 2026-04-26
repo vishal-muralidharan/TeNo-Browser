@@ -326,6 +326,18 @@ button.danger:hover {
   letter-spacing: 0.5px;
 }
 
+.label-section {
+  margin-bottom: 12px;
+}
+
+.label-section-title {
+  font-size: 0.82rem;
+  color: var(--color-text-muted);
+  margin-bottom: 8px;
+  letter-spacing: 0.12em;
+  text-transform: lowercase;
+}
+
 .section-empty {
   color: var(--color-text-muted);
   font-size: 0.92rem;
@@ -372,6 +384,18 @@ button.danger:hover {
   flex-direction: column;
   overflow: visible;
   gap: 2px;
+}
+
+.label-chip {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  border: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+  padding: 1px 6px;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: lowercase;
 }
 
 .item-text {

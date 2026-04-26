@@ -7,6 +7,7 @@ export default function LinkStorer({ collectionName = 'saved_links', title = 'Sa
   const [url, setUrl] = useState('');
   const [nickname, setNickname] = useState('');
   const [description, setDescription] = useState('');
+  const [label, setLabel] = useState('');
   const [links, setLinks] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [activeMenu, setActiveMenu] = useState(null);
@@ -114,10 +115,12 @@ export default function LinkStorer({ collectionName = 'saved_links', title = 'Sa
     }
 
     setIsSubmitting(true);
+    const cleanLabel = label.trim().toLowerCase();
     await addDoc(collection(db, 'users', user.uid, collectionName), {
       url: cleanUrl,
       nickname: nickname.trim(),
       description: description.trim(),
+      label: cleanLabel,
       domain: domain,
       isFavorite: false,
       createdAt: serverTimestamp()
@@ -125,6 +128,7 @@ export default function LinkStorer({ collectionName = 'saved_links', title = 'Sa
     setUrl('');
     setNickname('');
     setDescription('');
+    setLabel('');
     setIsSubmitting(false);
   };
 
@@ -165,6 +169,7 @@ export default function LinkStorer({ collectionName = 'saved_links', title = 'Sa
       nickname: link.nickname,
       url: link.url,
       description: link.description || '',
+      label: link.label || '',
     });
     setActiveMenu(null);
   };
@@ -185,12 +190,15 @@ export default function LinkStorer({ collectionName = 'saved_links', title = 'Sa
     } catch (err) {
       domain = cleanUrl;
     }
+
+    const cleanLabel = editingItem.label.trim().toLowerCase();
     
     await updateDoc(doc(db, 'users', user.uid, collectionName, editingItem.id), {
        nickname: editingItem.nickname.trim(),
        url: cleanUrl,
        domain,
-       description: editingItem.description.trim()
+       description: editingItem.description.trim(),
+       label: cleanLabel,
     });
     setEditingItem(null);
   };
@@ -223,8 +231,24 @@ export default function LinkStorer({ collectionName = 'saved_links', title = 'Sa
 
   const favoriteLinks = links.filter((link) => link.isFavorite);
   const otherLinks = links.filter((link) => !link.isFavorite);
+  const otherGroupedLinks = otherLinks.reduce((groups, link) => {
+    const groupName = link.label ? link.label.trim().toLowerCase() : '';
+    const key = groupName || '__ungrouped__';
+    if (!groups[key]) {
+      groups[key] = { label: groupName, items: [] };
+    }
+    groups[key].items.push(link);
+    return groups;
+  }, {});
 
-  const renderLinkCells = (sectionLinks, startIndex = 0) => {
+  const groupedOtherSections = Object.values(otherGroupedLinks).sort((a, b) => {
+    if (a.label && b.label) return a.label.localeCompare(b.label);
+    if (a.label) return -1;
+    if (b.label) return 1;
+    return 0;
+  });
+
+  const renderLinkCells = (sectionLinks, startIndex = 0, showLabelChip = true) => {
     if (sectionLinks.length === 0) {
       return <p className="section-empty">No items yet</p>;
     }
@@ -250,6 +274,7 @@ export default function LinkStorer({ collectionName = 'saved_links', title = 'Sa
                       {index < 9 && <span style={{ opacity: 0.5, marginRight: '6px', fontSize: '0.9em' }}>[{index + 1}]</span>}
                       {link.nickname}
                     </span>
+                    {showLabelChip && link.label && <span className="label-chip">{link.label}</span>}
                     {link.description && <span className="item-desc">{link.description}</span>}
                   </div>
                 </div>
@@ -338,6 +363,12 @@ export default function LinkStorer({ collectionName = 'saved_links', title = 'Sa
           value={url}
           onChange={(e) => setUrl(e.target.value)}
         />
+        <input
+          type="text"
+          placeholder="Label (optional)"
+          value={label}
+          onChange={(e) => setLabel(e.target.value)}
+        />
         <textarea
           placeholder="Description"
           value={description}
@@ -358,7 +389,16 @@ export default function LinkStorer({ collectionName = 'saved_links', title = 'Sa
 
       <section className="section-block">
         <h3 className="section-title">other links</h3>
-        {renderLinkCells(otherLinks, favoriteLinks.length)}
+        {groupedOtherSections.length === 0 ? (
+          <p className="section-empty">No items yet</p>
+        ) : (
+          groupedOtherSections.map((section) => (
+            <div key={section.label || 'ungrouped'} className="label-section">
+              {section.label ? <h4 className="label-section-title">{section.label}</h4> : <h4 className="label-section-title">ungrouped</h4>}
+              {renderLinkCells(section.items, 0, false)}
+            </div>
+          ))
+        )}
       </section>
 
       {pendingDelete && (
@@ -389,6 +429,12 @@ export default function LinkStorer({ collectionName = 'saved_links', title = 'Sa
                  value={editingItem.url} 
                  onChange={e => setEditingItem({...editingItem, url: e.target.value})}
                  placeholder="URL"
+               />
+               <input 
+                 type="text" 
+                 value={editingItem.label} 
+                 onChange={e => setEditingItem({...editingItem, label: e.target.value})}
+                 placeholder="Label (optional)"
                />
                <textarea 
                  value={editingItem.description}
