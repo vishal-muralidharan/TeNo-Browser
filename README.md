@@ -16,7 +16,7 @@ TeNo is designed as a fast command-center style utility:
 ## Core Features
 
 - User authentication
-  - Google sign-in
+  - Email/Password sign-in
   - Email/password login and registration
   - Logout support
 - Saved links manager
@@ -76,7 +76,7 @@ curr-brows/
 - Node.js 18+ (Node.js 20+ recommended)
 - npm
 - A Firebase project with:
-  - Authentication enabled (Google provider and/or Email/Password)
+  - Authentication enabled (Email/Password)
   - Firestore database enabled
 
 ### Install

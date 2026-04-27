@@ -2,8 +2,8 @@ import React, { useState, useEffect, useRef } from 'react'
 import LinkStorer from './components/LinkStorer'
 import Reminders from './components/Reminders'
 import Timer from './components/Timer'
-import { auth, googleProvider, db } from './firebase'
-import { onAuthStateChanged, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from 'firebase/auth'
+import { auth, db } from './firebase'
+import { onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, sendPasswordResetEmail, updateProfile } from 'firebase/auth'
 import { collection, query, getDocs, writeBatch, doc } from 'firebase/firestore'
 
 function App() {
@@ -11,10 +11,33 @@ function App() {
   const [prevTab, setPrevTab] = useState(0)
   const [user, setUser] = useState(null)
   const [loadingAuth, setLoadingAuth] = useState(true)
+  const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
   const [isRegistering, setIsRegistering] = useState(false)
+  const [isResettingPassword, setIsResettingPassword] = useState(false)
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
+  const [authError, setAuthError] = useState('')
+  const [authStatus, setAuthStatus] = useState('')
   const appContainerRef = useRef(null)
+
+  const getAuthErrorMessage = (error) => {
+    if (!error) return 'Authentication failed.'
+    const code = error.code || ''
+
+    if (code === 'auth/internal-error') {
+      return 'Firebase internal auth error. Check your Firebase Auth configuration and try again.'
+    }
+
+    if (code === 'auth/operation-not-allowed') return 'This sign-in method is disabled in Firebase Auth settings.'
+    if (code === 'auth/invalid-credential') return 'Invalid login credentials.'
+    if (code === 'auth/invalid-email') return 'Invalid email format.'
+    if (code === 'auth/user-not-found') return 'No account found for this email.'
+    if (code === 'auth/wrong-password') return 'Incorrect password.'
+
+    return error.message || 'Authentication failed.'
+  }
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
@@ -61,26 +84,64 @@ function App() {
     }
   };
 
-  const handleGoogleLogin = async () => {
+  const isStrongPassword = (pass) => {
+    const minLength = 8;
+    const hasUpper = /[A-Z]/.test(pass);
+    const hasLower = /[a-z]/.test(pass);
+    const hasNumber = /[0-9]/.test(pass);
+    const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(pass);
+    return pass.length >= minLength && hasUpper && hasLower && hasNumber && hasSpecial;
+  };
+
+  const handlePasswordReset = async (e) => {
+    e.preventDefault();
+    if (!email) {
+      setAuthError('Please enter your email to reset your password.');
+      return;
+    }
     try {
-      await signInWithPopup(auth, googleProvider);
+      setAuthError('');
+      setAuthStatus('Sending password reset email...');
+      await sendPasswordResetEmail(auth, email);
+      setAuthStatus('Password reset email sent. Check your inbox.');
     } catch (error) {
       console.error(error);
-      alert(error.message);
+      setAuthError(getAuthErrorMessage(error));
+      setAuthStatus('');
     }
   };
 
   const handleEmailAuth = async (e) => {
     e.preventDefault();
     try {
+      setAuthError('')
+      setAuthStatus('')
+      
       if (isRegistering) {
-        await createUserWithEmailAndPassword(auth, email, password);
+        if (!name.trim()) {
+          setAuthError('Please enter your name.');
+          return;
+        }
+        
+        if (password !== confirmPassword) {
+          setAuthError('Passwords do not match.');
+          return;
+        }
+        
+        if (!isStrongPassword(password)) {
+          setAuthError('Password must be at least 8 characters long and include an uppercase letter, a lowercase letter, a number, and a special character.');
+          return;
+        }
+
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        await updateProfile(userCredential.user, { displayName: name });
+        setAuthStatus('Registration successful.');
       } else {
         await signInWithEmailAndPassword(auth, email, password);
       }
     } catch (error) {
       console.error(error);
-      alert(error.message);
+      setAuthError(getAuthErrorMessage(error))
     }
   };
 
@@ -148,9 +209,11 @@ function App() {
         <div className="brand" style={{ display: 'flex', justifyContent: 'space-between', width: '100%', paddingRight: '1rem', alignItems: 'center' }}>
           <h1>teno</h1>
           {user && (
-            <button onClick={handleLogout} style={{ background: 'transparent', border: '1px solid #666', color: '#ccc', padding: '0.2rem 0.5rem', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem' }}>
-              Logout
-            </button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.8rem' }}>
+              <button onClick={() => setShowLogoutConfirm(true)} style={{ background: 'transparent', border: '1px solid #444', color: '#888', padding: '0.2rem 0.5rem', borderRadius: '4px', cursor: 'pointer', fontSize: 'inherit' }}>
+                logout
+              </button>
+            </div>
           )}
         </div>
       </header>
@@ -158,42 +221,107 @@ function App() {
       {loadingAuth ? (
         <div style={{ padding: '2rem', textAlign: 'center', color: '#666' }}>Loading...</div>
       ) : !user ? (
-        <div className="auth-container" style={{ padding: '1rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          <h2 style={{ fontSize: '1.2rem', marginBottom: '1rem' }}>Log in to TeNo</h2>
-          <button 
-            onClick={handleGoogleLogin} 
-            style={{ padding: '0.5rem', background: '#4285F4', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
-          >
-            Sign in with Google
-          </button>
-          <div style={{ textAlign: 'center', margin: '0.5rem 0', color: '#666' }}>or</div>
-          <form onSubmit={handleEmailAuth} style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-            <input 
-              type="email" 
-              placeholder="Email" 
-              value={email} 
-              onChange={e => setEmail(e.target.value)} 
-              required 
-              style={{ padding: '0.5rem', borderRadius: '4px', border: '1px solid #444', background: '#222', color: 'white' }}
-            />
-            <input 
-              type="password" 
-              placeholder="Password" 
-              value={password} 
-              onChange={e => setPassword(e.target.value)} 
-              required 
-              style={{ padding: '0.5rem', borderRadius: '4px', border: '1px solid #444', background: '#222', color: 'white' }}
-            />
-            <button type="submit" style={{ padding: '0.5rem', background: '#2ba84a', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', marginTop: '0.5rem' }}>
-              {isRegistering ? 'Create Account' : 'Log in Options'}
-            </button>
-            <p 
-              onClick={() => setIsRegistering(!isRegistering)} 
-              style={{ textAlign: 'center', fontSize: '0.8rem', color: '#aaa', cursor: 'pointer', marginTop: '0.5rem', textDecoration: 'underline' }}
-            >
-              {isRegistering ? 'Already have an account? Log in' : 'Need an account? Register'}
-            </p>
-          </form>
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', flex: 1, padding: '1rem' }}>
+          <div className="auth-container" style={{ padding: '2rem', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '1rem', width: '100%', maxWidth: '480px', aspectRatio: '1 / 1', background: '#0a0a0a', border: '1px solid #333', borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.5)' }}>
+            <h2 style={{ fontSize: '1.2rem', marginBottom: '0.5rem', textAlign: 'center' }}>Welcome to TeNo</h2>
+          {authError && (
+            <div style={{ background: '#3b1d1d', border: '1px solid #8b3a3a', color: '#ffd7d7', padding: '0.6rem', borderRadius: '6px', fontSize: '0.85rem' }}>
+              {authError}
+            </div>
+          )}
+          {authStatus && !authError && (
+            <div style={{ background: '#1c2f22', border: '1px solid #2c7a4b', color: '#d8ffe7', padding: '0.6rem', borderRadius: '6px', fontSize: '0.85rem' }}>
+              {authStatus}
+            </div>
+          )}
+
+          {isResettingPassword ? (
+            <form onSubmit={handlePasswordReset} style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              <input 
+                type="email" 
+                placeholder="Enter your email" 
+                value={email} 
+                onChange={e => setEmail(e.target.value)} 
+                required 
+                style={{ padding: '0.5rem', borderRadius: '4px', border: '1px solid #444', background: '#222', color: 'white', fontFamily: 'inherit', fontSize: '1rem' }}
+              />
+              <button type="submit" style={{ padding: '0.5rem', background: '#4285F4', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', marginTop: '0.5rem', fontSize: '1rem', fontFamily: 'inherit' }}>
+                Send Reset Email
+              </button>
+              <p 
+                onClick={() => { setIsResettingPassword(false); setAuthError(''); setAuthStatus(''); }} 
+                style={{ textAlign: 'center', fontSize: '0.95rem', color: '#aaa', cursor: 'pointer', marginTop: '0.5rem', textDecoration: 'underline' }}
+              >
+                Back to log in
+              </p>
+            </form>
+          ) : (
+            <form onSubmit={handleEmailAuth} style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+              {isRegistering && (
+                <input 
+                  type="text" 
+                  placeholder="Full Name" 
+                  value={name} 
+                  onChange={e => setName(e.target.value)} 
+                  required={isRegistering} 
+                  style={{ padding: '0.75rem', borderRadius: '4px', border: '1px solid #444', background: '#222', color: 'white', fontFamily: 'inherit', fontSize: '1rem' }}
+                />
+              )}
+              <input 
+                type="email" 
+                placeholder="Email" 
+                value={email} 
+                onChange={e => setEmail(e.target.value)} 
+                required 
+                style={{ padding: '0.75rem', borderRadius: '4px', border: '1px solid #444', background: '#222', color: 'white', fontFamily: 'inherit', fontSize: '1rem' }}
+              />
+              <input 
+                type="password" 
+                placeholder="Password" 
+                value={password} 
+                onChange={e => setPassword(e.target.value)} 
+                required 
+                style={{ padding: '0.75rem', borderRadius: '4px', border: '1px solid #444', background: '#222', color: 'white', fontFamily: 'inherit', fontSize: '1rem' }}
+              />
+              {isRegistering && (
+                <input 
+                  type="password" 
+                  placeholder="Confirm Password" 
+                  value={confirmPassword} 
+                  onChange={e => setConfirmPassword(e.target.value)} 
+                  required={isRegistering} 
+                  style={{ padding: '0.75rem', borderRadius: '4px', border: '1px solid #444', background: '#222', color: 'white', fontFamily: 'inherit', fontSize: '1rem' }}
+                />
+              )}
+              
+              {!isRegistering && (
+                <p 
+                  onClick={() => { setIsResettingPassword(true); setAuthError(''); setAuthStatus(''); }} 
+                  style={{ textAlign: 'right', fontSize: '0.85rem', color: '#aaa', cursor: 'pointer', marginTop: '-0.2rem', marginBottom: '0.2rem', textDecoration: 'underline' }}
+                >
+                  Forgot password?
+                </p>
+              )}
+
+              <button type="submit" style={{ padding: '0.6rem', background: '#2ba84a', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', marginTop: '0.5rem', fontSize: '1rem', fontFamily: 'inherit', fontWeight: '500' }}>
+                {isRegistering ? 'Create Account' : 'Log in'}
+              </button>
+              
+              <p 
+                onClick={() => {
+                  setIsRegistering(!isRegistering);
+                  setAuthError('');
+                  setAuthStatus('');
+                  setPassword('');
+                  setConfirmPassword('');
+                }} 
+                style={{ textAlign: 'center', fontSize: '0.95rem', color: '#aaa', cursor: 'pointer', marginTop: '0.5rem', textDecoration: 'underline' }}
+              >
+                {isRegistering ? 'Already have an account? Log in' : 'Need an account? Register'}
+              </p>
+            </form>
+          )}
+          </div>
         </div>
       ) : (
         <>
@@ -228,6 +356,18 @@ function App() {
             })}
           </main>
         </>
+      )}
+
+      {showLogoutConfirm && (
+        <div className="custom-modal-overlay">
+          <div className="custom-modal">
+            <p style={{marginBottom: "16px"}}>Confirm Log out?</p>
+            <div className="modal-actions">
+              <button type="button" onClick={() => setShowLogoutConfirm(false)}>Cancel</button>
+              <button type="button" className="btn-primary" onClick={() => { handleLogout(); setShowLogoutConfirm(false); }}>Log out</button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )

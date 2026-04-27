@@ -1,20 +1,12 @@
 import React, { useState } from 'react';
-import { googleProvider, auth } from '../firebase';
-import { signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '../firebase';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
 
 function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isRegistering, setIsRegistering] = useState(false);
   const [error, setError] = useState('');
-
-  const handleGoogleLogin = async () => {
-    try {
-      await signInWithPopup(auth, googleProvider);
-    } catch (err) {
-      setError(err.message);
-    }
-  };
 
   const handleEmailAuth = async (e) => {
     e.preventDefault();
@@ -58,12 +50,6 @@ function Login() {
 
       <button onClick={() => setIsRegistering(!isRegistering)} style={{ width: '100%', marginBottom: '15px', color: 'var(--text-secondary)' }}>
         [ {isRegistering ? 'switch to login' : 'switch to register'} ]
-      </button>
-
-      <div style={{ textAlign: 'center', marginBottom: '15px', color: 'var(--border)' }}>--- or ---</div>
-
-      <button onClick={handleGoogleLogin} className="mono-input" style={{ width: '100%', borderStyle: 'dashed' }}>
-        login via google
       </button>
 
       <div style={{ marginTop: '30px', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
