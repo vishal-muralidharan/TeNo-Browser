@@ -103,7 +103,7 @@ function App() {
       setAuthError('');
       setAuthStatus('Sending password reset email...');
       await sendPasswordResetEmail(auth, email);
-      setAuthStatus('Password reset email sent. Check your inbox.');
+      setAuthStatus('Check your spam folder for the password reset link. It will be active for only 5 mins.');
     } catch (error) {
       console.error(error);
       setAuthError(getAuthErrorMessage(error));
@@ -226,23 +226,21 @@ function App() {
             
             <div style={{ position: 'absolute', top: '2rem', left: '2rem', right: '2rem', height: '80px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
               <h2 style={{ fontSize: '1.7rem', marginBottom: '0.4rem', textAlign: 'center', margin: '0' }}>Welcome to TeNo</h2>
-              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', width: '100%', marginTop: '0.4rem' }}>
-                {authError && (
-                  <div style={{ background: '#3b1d1d', border: '1px solid #8b3a3a', color: '#ffd7d7', padding: '0.5rem', borderRadius: '6px', fontSize: '0.85rem', textAlign: 'center' }}>
-                    {authError}
-                  </div>
-                )}
-                {authStatus && !authError && (
-                  <div style={{ background: '#1c2f22', border: '1px solid #2c7a4b', color: '#d8ffe7', padding: '0.5rem', borderRadius: '6px', fontSize: '0.85rem', textAlign: 'center' }}>
-                    {authStatus}
-                  </div>
-                )}
-              </div>
             </div>
 
             {isResettingPassword ? (
               <form onSubmit={handlePasswordReset} style={{ position: 'absolute', top: '100px', bottom: '2rem', left: '2rem', right: '2rem', display: 'flex', flexDirection: 'column' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', justifyContent: 'center', flex: 1, paddingBottom: '90px' }}>
+                  {authError && (
+                    <div style={{ background: '#3b1d1d', border: '1px solid #8b3a3a', color: '#ffd7d7', padding: '0.5rem', borderRadius: '6px', fontSize: '0.85rem', textAlign: 'center', marginBottom: '0.5rem' }}>
+                      {authError}
+                    </div>
+                  )}
+                  {authStatus && !authError && (
+                    <div style={{ background: '#1c2f22', border: '1px solid #2c7a4b', color: '#d8ffe7', padding: '0.5rem', borderRadius: '6px', fontSize: '0.85rem', textAlign: 'center', marginBottom: '0.5rem' }}>
+                      {authStatus}
+                    </div>
+                  )}
                   <input 
                     type="email" 
                     placeholder="Enter your email" 
@@ -267,6 +265,16 @@ function App() {
             ) : (
               <form onSubmit={handleEmailAuth} style={{ position: 'absolute', top: '100px', bottom: '2rem', left: '2rem', right: '2rem', display: 'flex', flexDirection: 'column' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', justifyContent: 'center', flex: 1, paddingBottom: '90px' }}>
+                  {authError && (
+                    <div style={{ background: '#3b1d1d', border: '1px solid #8b3a3a', color: '#ffd7d7', padding: '0.5rem', borderRadius: '6px', fontSize: '0.85rem', textAlign: 'center', marginBottom: '0.5rem' }}>
+                      {authError}
+                    </div>
+                  )}
+                  {authStatus && !authError && (
+                    <div style={{ background: '#1c2f22', border: '1px solid #2c7a4b', color: '#d8ffe7', padding: '0.5rem', borderRadius: '6px', fontSize: '0.85rem', textAlign: 'center', marginBottom: '0.5rem' }}>
+                      {authStatus}
+                    </div>
+                  )}
                   {isRegistering && (
                     <input 
                       type="text" 

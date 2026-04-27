@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { db } from '../firebase';
-import { collection, addDoc, serverTimestamp, query, orderBy, onSnapshot, deleteDoc, doc, updateDoc, where } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, query, orderBy, onSnapshot, deleteDoc, doc, updateDoc, where, setDoc } from 'firebase/firestore';
 import { ExternalLink, MoreVertical, Trash2, Globe, Star, Edit2, ChevronUp, ChevronDown } from 'lucide-react';
 
 export default function LinkStorer({ collectionName = 'saved_links', title = 'Saved Links', isActive = true, user }) {
@@ -16,9 +16,56 @@ export default function LinkStorer({ collectionName = 'saved_links', title = 'Sa
   // Custom Modal State
   const [pendingDelete, setPendingDelete] = useState(null);
   const [editingItem, setEditingItem] = useState(null);
+  
+  const [labelOrder, setLabelOrder] = useState([]);
+
+  const handleMoveSection = async (e, sectionLabel, direction) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const currentLabels = displaySections
+      .filter(s => s.key !== 'favorites' && s.key !== 'ungrouped')
+      .map(s => s.label);
+
+    const oldIndex = currentLabels.indexOf(sectionLabel);
+    if (oldIndex === -1) return;
+
+    const newIndex = oldIndex + direction;
+    if (newIndex < 0 || newIndex >= currentLabels.length) return;
+
+    const newLabels = [...currentLabels];
+    const temp = newLabels[newIndex];
+    newLabels[newIndex] = newLabels[oldIndex];
+    newLabels[oldIndex] = temp;
+
+    console.log("Moving label", sectionLabel, "Direction:", direction);
+    console.log("Old array:", currentLabels);
+    console.log("New array:", newLabels);
+
+    try {
+      // Optimistically update local state so UI updates instantly
+      setLabelOrder(newLabels);
+      const settingsDocRef = doc(db, 'users', user.uid, 'settings', `labels_${collectionName}`);
+      await setDoc(settingsDocRef, { order: newLabels }, { merge: true });
+    } catch (err) {
+      console.error("Error updating label order:", err);
+      // Revert optimism if needed (won't bother for visual feedback alert test)
+      alert("Failed to reorder: " + err.message);
+    }
+  };
 
   useEffect(() => {
     if (!user) return;
+
+    const settingsDocRef = doc(db, 'users', user.uid, 'settings', `labels_${collectionName}`);
+    const unsubSettings = onSnapshot(settingsDocRef, (docSnap) => {
+      if (docSnap.exists()) {
+        setLabelOrder(docSnap.data().order || []);
+      } else {
+        setLabelOrder([]);
+      }
+    });
+
     const q = query(
       collection(db, 'users', user.uid, collectionName)
     );
@@ -67,6 +114,7 @@ export default function LinkStorer({ collectionName = 'saved_links', title = 'Sa
 
     return () => {
       unsub();
+      unsubSettings();
       if (storageListener && typeof chrome !== 'undefined' && chrome.storage && chrome.storage.onChanged) {
         chrome.storage.onChanged.removeListener(storageListener);
       }
@@ -249,6 +297,14 @@ export default function LinkStorer({ collectionName = 'saved_links', title = 'Sa
       if (b.key === 'favorites') return 1;
       if (a.key === 'ungrouped') return 1;
       if (b.key === 'ungrouped') return -1;
+      
+      const indexA = labelOrder.indexOf(a.label);
+      const indexB = labelOrder.indexOf(b.label);
+      
+      if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+      if (indexA !== -1) return -1;
+      if (indexB !== -1) return 1;
+      
       return a.label.localeCompare(b.label);
     });
 
@@ -437,9 +493,41 @@ export default function LinkStorer({ collectionName = 'saved_links', title = 'Sa
 
       <h2 className="tab-title">{title}</h2>
 
-      {displaySections.map((section) => (
+      {displaySections.map((section) => {
+        const customSections = displaySections.filter(s => s.key !== 'favorites' && s.key !== 'ungrouped');
+        const sIndex = customSections.findIndex(s => s.key === section.key);
+        const canSectionMoveUp = sIndex > 0;
+        const canSectionMoveDown = sIndex !== -1 && sIndex < customSections.length - 1;
+
+        return (
         <section key={section.key} className="section-block">
-          <h3 className="section-title">{section.title}</h3>
+          <h3 className="section-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span>{section.title}</span>
+            {section.key !== 'favorites' && section.key !== 'ungrouped' && (
+              <div className="order-controls" style={{ display: 'flex', flexDirection: 'column', padding: '0 2px', gap: '0px' }}>
+                <button 
+                  type="button"
+                  className="icon-btn" 
+                  onClick={(e) => handleMoveSection(e, section.label, -1)}
+                  disabled={!canSectionMoveUp}
+                  style={{ padding: '0px', border: 'none', height: '12px', lineHeight: 1 }}
+                  title="Move section up"
+                >
+                  <ChevronUp size={12} opacity={canSectionMoveUp ? 0.8 : 0.3} />
+                </button>
+                <button 
+                  type="button"
+                  className="icon-btn" 
+                  onClick={(e) => handleMoveSection(e, section.label, 1)}
+                  disabled={!canSectionMoveDown}
+                  style={{ padding: '0px', border: 'none', height: '12px', lineHeight: 1 }}
+                  title="Move section down"
+                >
+                  <ChevronDown size={12} opacity={canSectionMoveDown ? 0.8 : 0.3} />
+                </button>
+              </div>
+            )}
+          </h3>
           {section.key !== 'favorites' && section.key !== 'ungrouped' ? (
             renderLinkCells(section.items, 0, false, section.key)
           ) : section.key === 'ungrouped' ? (
@@ -450,7 +538,7 @@ export default function LinkStorer({ collectionName = 'saved_links', title = 'Sa
             renderLinkCells(section.items, 0, true, section.key)
           )}
         </section>
-      ))}
+      )})}
 
       {pendingDelete && (
         <div className="custom-modal-overlay">
