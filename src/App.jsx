@@ -103,7 +103,7 @@ function App() {
       setAuthError('');
       setAuthStatus('Sending password reset email...');
       await sendPasswordResetEmail(auth, email);
-      setAuthStatus('Check your spam folder for the password reset link. It will be active for only 5 mins.');
+        setAuthStatus(<span>Check your <strong>spam</strong> folder for the password reset link. It will be <strong>valid for 5 minutes</strong>.</span>);
     } catch (error) {
       console.error(error);
       setAuthError(getAuthErrorMessage(error));

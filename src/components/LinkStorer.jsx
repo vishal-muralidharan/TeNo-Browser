@@ -162,15 +162,26 @@ export default function LinkStorer({ collectionName = 'saved_links', title = 'Sa
     setIsSubmitting(false);
   };
 
-  const handleOpen = (linkUrl, newWindow = false) => {
+  const handleOpen = (e, linkUrl, newWindow = false) => {
+    if (e && e.preventDefault) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+
     if (typeof chrome !== 'undefined' && chrome.tabs) {
       if (newWindow) {
         chrome.windows.create({ url: linkUrl });
       } else {
-        chrome.tabs.create({ url: linkUrl });
+        chrome.tabs.create({ url: linkUrl, active: false });
       }
     } else {
-      window.open(linkUrl, '_blank');
+      // Fallback for non-extension environment (Vite Dev Server)
+      const win = window.open(linkUrl, '_blank');
+      if (win) {
+        win.blur();
+        window.focus();
+        setTimeout(() => window.focus(), 10); // Attempt to steal focus back
+      }
     }
     setActiveMenu(null);
   };
@@ -328,11 +339,11 @@ export default function LinkStorer({ collectionName = 'saved_links', title = 'Sa
       if (!isNaN(keyIndex) && keyIndex >= 0 && keyIndex < 9) {
         const entry = flattenedDisplay[keyIndex];
         if (entry) {
-          handleOpen(entry.link.url);
+          handleOpen(e, entry.link.url);
         }
       }
     };
-    
+
     window.addEventListener('keydown', handleGlobalKeyDown);
     return () => window.removeEventListener('keydown', handleGlobalKeyDown);
   }, [flattenedDisplay, isActive]);
@@ -371,7 +382,7 @@ export default function LinkStorer({ collectionName = 'saved_links', title = 'Sa
           return (
             <React.Fragment key={link.id}>
               <div className="list-item">
-                <div className="item-content" onClick={() => handleOpen(link.url)}>
+                <div className="item-content" onClick={(e) => handleOpen(e, link.url)}>
                   <img
                     src={`https://s2.googleusercontent.com/s2/favicons?domain=${link.domain}&sz=64`}
                     onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'block'; }}
@@ -429,7 +440,7 @@ export default function LinkStorer({ collectionName = 'saved_links', title = 'Sa
                     </button>
                     {activeMenu === link.id && (
                       <div className="dropdown-menu" onClick={(e) => e.stopPropagation()}>
-                        <button onClick={() => handleOpen(link.url, true)}>
+                          <button onClick={(e) => handleOpen(e, link.url, true)}>
                           <ExternalLink size={14} /> New Window
                         </button>
                         <button onClick={() => requestEdit(link)}>
