@@ -32,7 +32,7 @@ const addStates = `const [isFormOpen, setIsFormOpen] = useState(false);
     newLabels[newIndex] = newLabels[oldIndex];
     newLabels[oldIndex] = temp;
 
-    const settingsDocRef = doc(db, 'users', user.uid, 'settings', \`labels_\${collectionName}\`);
+    const settingsDocRef = doc(db, 'users', user.uid, 'settings', `labels_${collectionName}`);
     await setDoc(settingsDocRef, { order: newLabels }, { merge: true });
   };`;
 
@@ -41,7 +41,7 @@ content = content.replace(stateRegex, addStates);
 const effectRegex = /const q = query\(\s*collection\(db, 'users', user\.uid, collectionName\)\s*\);/;
 
 const addListener = `
-    const settingsDocRef = doc(db, 'users', user.uid, 'settings', \`labels_\${collectionName}\`);
+    const settingsDocRef = doc(db, 'users', user.uid, 'settings', \`labels_${collectionName}\`);
     const unsubSettings = onSnapshot(settingsDocRef, (docSnap) => {
       if (docSnap.exists()) {
         setLabelOrder(docSnap.data().order || []);
