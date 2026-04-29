@@ -6,6 +6,7 @@
   --color-bg-card: #000000; 
   --color-bg-hover: #ffffff;
   --color-border: #333333;
+  --link-card-width: 240px;
   
   --color-text-main: #ffffff;
   --color-text-muted: #888888;
@@ -130,6 +131,7 @@ body {
   bottom: 0;
   padding: 12px 12px 14px;
   overflow-y: auto;
+  overflow-x: hidden;
   transition: transform 0.2s linear, opacity 0.2s linear; /* Hacker snappy transition */
   will-change: transform, opacity;
 }
@@ -177,6 +179,8 @@ body {
   flex-direction: column;
   height: auto;
   min-height: 100%;
+  width: 100%;
+  max-width: 100%;
 }
 
 .tab-title {
@@ -309,14 +313,41 @@ button.danger:hover {
 /* List Items */
 .list-container {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fill, var(--link-card-width));
+  justify-content: start;
   gap: 8px;
   padding-bottom: 16px;
   align-content: start;
+  width: 100%;
+  max-width: 100%;
+}
+
+@media (max-width: 1024px) {
+  :root {
+    --link-card-width: 220px;
+  }
+}
+
+@media (max-width: 768px) {
+  :root {
+    --link-card-width: 200px;
+  }
+}
+
+@media (max-width: 520px) {
+  :root {
+    --link-card-width: 100%;
+  }
+
+  .list-container {
+    grid-template-columns: 1fr;
+  }
 }
 
 .section-block {
   margin-bottom: 10px;
+  width: 100%;
+  max-width: 100%;
 }
 
 .section-title {
@@ -328,6 +359,8 @@ button.danger:hover {
 
 .label-section {
   margin-bottom: 12px;
+  width: 100%;
+  max-width: 100%;
 }
 
 .label-section-title {
@@ -352,6 +385,9 @@ button.danger:hover {
   background-color: #080808;
   padding: 10px 10px;
   min-height: 110px;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
   border-radius: 0;
   border: 1px solid var(--color-border);
   gap: 8px;
@@ -370,6 +406,7 @@ button.danger:hover {
   flex: 1;
   overflow: visible;
   width: 100%;
+  min-width: 0;
 }
 
 .reminder-item .item-content {
@@ -388,6 +425,8 @@ button.danger:hover {
   flex-direction: column;
   overflow: visible;
   gap: 2px;
+  min-width: 0;
+  width: 100%;
 }
 
 .label-chip {
@@ -411,6 +450,7 @@ button.danger:hover {
   line-height: 1.25;
   max-height: none;
   word-break: break-word;
+  overflow-wrap: anywhere;
 }
 
 .item-desc {
@@ -420,6 +460,7 @@ button.danger:hover {
   line-height: 1.2;
   max-height: 2.4em;
   overflow: hidden;
+  overflow-wrap: anywhere;
 }
 .item-desc::before {
   content: "» ";
@@ -466,6 +507,7 @@ button.danger:hover {
   z-index: 20;
   display: flex;
   flex-direction: column;
+  max-width: calc(100vw - 24px);
 }
 
 .dropdown-menu button {
