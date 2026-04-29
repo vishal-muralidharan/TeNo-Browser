@@ -639,7 +639,7 @@ button.danger:hover {
   background: transparent;
   border: none;
   outline: none;
-  color: #f5d742;
+  color: #fff;
   font-family: inherit;
   font-size: 0.95rem;
   text-transform: lowercase;

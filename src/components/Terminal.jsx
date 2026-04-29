@@ -56,7 +56,11 @@ export default function Terminal({
   const inputRef = useRef(null)
   const lineIdRef = useRef(1)
   const matrixIntervalRef = useRef(null)
-  const userLabel = (user?.displayName || user?.email || 'user').toLowerCase()
+  const userLabel = (user?.displayName || user?.email?.split('@')[0] || 'user')
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, '-')
+  const terminalPrompt = `teno/${userLabel} $_ >>`
 
   const focusInput = () => {
     if (inputRef.current) {
@@ -96,6 +100,8 @@ export default function Terminal({
   const pushCommandLine = (text) => {
     setOutputLines((current) => [...current, { id: lineIdRef.current++, kind: 'command', text }])
   }
+
+  const getCommandPrefix = () => terminalPrompt
 
   const pushBlock = (text) => {
     String(text)
@@ -191,7 +197,7 @@ export default function Terminal({
         return
       }
 
-      commandHistory.forEach((item) => pushCommandLine(item))
+      commandHistory.forEach((item, index) => pushOutputLine(`${index + 1}. ${item}`))
       return
     }
 
@@ -463,7 +469,7 @@ export default function Terminal({
       </div>
 
       <form className="terminal-input-row" onSubmit={handleSubmit}>
-        <span className="terminal-prompt">&lt;{userLabel}&gt; $_ &gt;&gt;</span>
+        <span className="terminal-prompt">{terminalPrompt}</span>
         <input
           ref={inputRef}
           className="terminal-input"
@@ -485,7 +491,7 @@ export default function Terminal({
           <div key={line.id} className={`terminal-line ${line.kind === 'command' ? 'terminal-command-line' : 'terminal-output-line'}`}>
             {line.kind === 'command' ? (
               <>
-                <span className="terminal-command-prefix">&lt;{userLabel}&gt; $_ &gt;&gt;</span>
+                <span className="terminal-command-prefix">{getCommandPrefix()}</span>
                 <span className="terminal-command-text"> {line.text}</span>
               </>
             ) : (
