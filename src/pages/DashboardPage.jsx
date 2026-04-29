@@ -122,6 +122,7 @@ export default function DashboardPage({
 
       {terminalVisible ? (
         <Terminal
+          user={user}
           activeTab={activeTab}
           setActiveTab={setActiveTab}
           onExit={() => setTerminalVisible(false)}

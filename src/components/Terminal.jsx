@@ -7,33 +7,13 @@ const TAB_INDEX = {
   timer: 3,
 }
 
-const HELP_TEXT = `available commands:
-help
-history
-date
-exit
-clear
-cd links | cd cart | cd reminders | cd timer
-ln ls
-ln new
-ln drop [nickname]
-ln roulette
-ct ls
-ct new
-ct drop [nickname]
-ct checkout
-rm ls
-rm add [text]
-rm done [index]
-rm nuke
-tm start [minutes]
-tm stop
-tm status
-tm hack
-sudo [any]
-ping [url]
-matrix
-coffee`
+const HELP_GROUPS = {
+  general: ['help', 'history', 'date', 'exit', 'hide', 'clear', 'cd links/cart/reminders/timer'],
+  ln: ['ls', 'new', 'drop [nickname]', 'roulette'],
+  ct: ['ls', 'new', 'drop [nickname]', 'checkout'],
+  rm: ['ls', 'add [text]', 'done [index]', 'nuke'],
+  tm: ['start [minutes]', 'stop', 'status', 'hack'],
+}
 
 const formatTimerMs = (ms) => {
   const totalSeconds = Math.floor(Math.max(0, ms) / 1000)
@@ -50,6 +30,7 @@ const randomHex = (length) => Array.from({ length }, () => Math.floor(Math.rando
 const randomBinary = (length) => Array.from({ length }, () => (Math.random() > 0.5 ? '1' : '0')).join('')
 
 export default function Terminal({
+  user,
   activeTab,
   setActiveTab,
   onExit,
@@ -75,6 +56,7 @@ export default function Terminal({
   const inputRef = useRef(null)
   const lineIdRef = useRef(1)
   const matrixIntervalRef = useRef(null)
+  const userLabel = (user?.displayName || user?.email || 'user').toLowerCase()
 
   useEffect(() => {
     if (outputRef.current) {
@@ -118,6 +100,28 @@ export default function Terminal({
     setOutputLines([])
   }
 
+  const renderHelpGroup = (groupName) => {
+    const normalized = normalizeText(groupName)
+    if (normalized === 'help') {
+      pushLine('usage: help [general|ln|ct|rm|tm]')
+      return
+    }
+
+    if (normalized === 'general') {
+      pushLine('general commands:')
+      HELP_GROUPS.general.forEach((item) => pushLine(`- ${item}`))
+      return
+    }
+
+    if (HELP_GROUPS[normalized]) {
+      pushLine(`${normalized} commands:`)
+      HELP_GROUPS[normalized].forEach((item) => pushLine(`- ${item}`))
+      return
+    }
+
+    pushLine(`help section not found: ${groupName}`)
+  }
+
   const logReceipt = () => {
     const width = 27
     const lines = [
@@ -151,7 +155,18 @@ export default function Terminal({
     const arg = tokens.slice(1).join(' ')
 
     if (command === 'help') {
-      pushBlock(HELP_TEXT)
+      if (!arg) {
+        pushLine('help sections:')
+        pushLine('- general')
+        pushLine('- ln')
+        pushLine('- ct')
+        pushLine('- rm')
+        pushLine('- tm')
+        pushLine("type help [section] for more detail.")
+        return
+      }
+
+      renderHelpGroup(arg)
       return
     }
 
@@ -171,6 +186,12 @@ export default function Terminal({
     }
 
     if (command === 'exit') {
+      clearMatrix()
+      onExit()
+      return
+    }
+
+    if (command === 'hide') {
       clearMatrix()
       onExit()
       return
@@ -422,20 +443,12 @@ export default function Terminal({
   return (
     <section className="terminal-shell" aria-label="global terminal">
       <div className="terminal-header">
-        <span className="terminal-title">$_ terminal</span>
+        <span className="terminal-title">terminal</span>
         <button type="button" className="terminal-minimize" onClick={onExit}>hide</button>
       </div>
 
-      <div className="terminal-output" ref={outputRef}>
-        {outputLines.map((line) => (
-          <div key={line.id} className="terminal-line">
-            {line.text}
-          </div>
-        ))}
-      </div>
-
       <form className="terminal-input-row" onSubmit={handleSubmit}>
-        <span className="terminal-prompt">$_</span>
+        <span className="terminal-prompt">&lt;{userLabel}&gt; $_ &gt;&gt;</span>
         <input
           ref={inputRef}
           className="terminal-input"
@@ -451,6 +464,14 @@ export default function Terminal({
           autoCorrect="off"
         />
       </form>
+
+      <div className="terminal-output" ref={outputRef}>
+        {outputLines.map((line) => (
+          <div key={line.id} className="terminal-line">
+            {line.text}
+          </div>
+        ))}
+      </div>
     </section>
   )
 }
