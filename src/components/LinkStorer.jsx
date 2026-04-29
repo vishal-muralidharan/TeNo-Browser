@@ -19,6 +19,7 @@ export default function LinkStorer({ collectionName = 'saved_links', title = 'Sa
   
   const [labelOrder, setLabelOrder] = useState([]);
   const lastOpenSignal = useRef(openFormSignal);
+  const nicknameInputRef = useRef(null);
 
   const handleMoveSection = async (e, sectionLabel, direction) => {
     e.preventDefault();
@@ -129,6 +130,16 @@ export default function LinkStorer({ collectionName = 'saved_links', title = 'Sa
       lastOpenSignal.current = openFormSignal;
     }
   }, [openFormSignal]);
+
+  useEffect(() => {
+    if (!isFormOpen) return;
+
+    const focusTimer = setTimeout(() => {
+      nicknameInputRef.current?.focus();
+    }, 0);
+
+    return () => clearTimeout(focusTimer);
+  }, [isFormOpen]);
 
   useEffect(() => {
     const handleClickOutside = () => setActiveMenu(null);
@@ -483,6 +494,7 @@ export default function LinkStorer({ collectionName = 'saved_links', title = 'Sa
       <div className={`collapsible-form ${isFormOpen ? 'open' : ''}`}>
         <form className="input-group" onSubmit={handleSubmit}>
         <input
+          ref={nicknameInputRef}
           type="text"
           placeholder="Add Nickname"
           value={nickname}

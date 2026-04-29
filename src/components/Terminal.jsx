@@ -58,6 +58,17 @@ export default function Terminal({
   const matrixIntervalRef = useRef(null)
   const userLabel = (user?.displayName || user?.email || 'user').toLowerCase()
 
+  const focusInput = () => {
+    if (inputRef.current) {
+      inputRef.current.focus()
+    }
+  }
+
+  const handleTerminalPointerDown = (event) => {
+    if (event.target === inputRef.current) return
+    focusInput()
+  }
+
   useEffect(() => {
     if (outputRef.current) {
       outputRef.current.scrollTop = outputRef.current.scrollHeight
@@ -78,14 +89,18 @@ export default function Terminal({
     }
   }, [])
 
-  const pushLine = (text) => {
-    setOutputLines((current) => [...current, { id: lineIdRef.current++, text }])
+  const pushOutputLine = (text) => {
+    setOutputLines((current) => [...current, { id: lineIdRef.current++, kind: 'output', text }])
+  }
+
+  const pushCommandLine = (text) => {
+    setOutputLines((current) => [...current, { id: lineIdRef.current++, kind: 'command', text }])
   }
 
   const pushBlock = (text) => {
     String(text)
       .split('\n')
-      .forEach((line) => pushLine(line))
+      .forEach((line) => pushOutputLine(line))
   }
 
   const clearMatrix = () => {
@@ -103,23 +118,23 @@ export default function Terminal({
   const renderHelpGroup = (groupName) => {
     const normalized = normalizeText(groupName)
     if (normalized === 'help') {
-      pushLine('usage: help [general|ln|ct|rm|tm]')
+      pushOutputLine('usage: help [general|ln|ct|rm|tm]')
       return
     }
 
     if (normalized === 'general') {
-      pushLine('general commands:')
-      HELP_GROUPS.general.forEach((item) => pushLine(`- ${item}`))
+      pushOutputLine('general commands:')
+      HELP_GROUPS.general.forEach((item) => pushOutputLine(`- ${item}`))
       return
     }
 
     if (HELP_GROUPS[normalized]) {
-      pushLine(`${normalized} commands:`)
-      HELP_GROUPS[normalized].forEach((item) => pushLine(`- ${item}`))
+      pushOutputLine(`${normalized} commands:`)
+      HELP_GROUPS[normalized].forEach((item) => pushOutputLine(`- ${item}`))
       return
     }
 
-    pushLine(`help section not found: ${groupName}`)
+    pushOutputLine(`help section not found: ${groupName}`)
   }
 
   const logReceipt = () => {
@@ -156,13 +171,13 @@ export default function Terminal({
 
     if (command === 'help') {
       if (!arg) {
-        pushLine('help sections:')
-        pushLine('- general')
-        pushLine('- ln')
-        pushLine('- ct')
-        pushLine('- rm')
-        pushLine('- tm')
-        pushLine("type help [section] for more detail.")
+        pushOutputLine('help sections:')
+        pushOutputLine('- general')
+        pushOutputLine('- ln')
+        pushOutputLine('- ct')
+        pushOutputLine('- rm')
+        pushOutputLine('- tm')
+        pushOutputLine("type help [section] for more detail.")
         return
       }
 
@@ -172,16 +187,16 @@ export default function Terminal({
 
     if (command === 'history') {
       if (commandHistory.length === 0) {
-        pushLine('no history yet.')
+        pushOutputLine('no history yet.')
         return
       }
 
-      commandHistory.forEach((item, index) => pushLine(`${index}: ${item}`))
+      commandHistory.forEach((item) => pushCommandLine(item))
       return
     }
 
     if (command === 'date') {
-      pushLine(new Date().toISOString())
+      pushOutputLine(new Date().toISOString())
       return
     }
 
@@ -205,9 +220,9 @@ export default function Terminal({
     if (command === 'cd') {
       if (['links', 'cart', 'reminders', 'timer'].includes(arg)) {
         navigateTo(arg)
-        pushLine(`switched to ${arg}.`)
+        pushOutputLine(`switched to ${arg}.`)
       } else {
-        pushLine(`unknown destination: ${arg}`)
+        pushOutputLine(`unknown destination: ${arg}`)
       }
       return
     }
@@ -218,12 +233,12 @@ export default function Terminal({
 
       if (subcommand === 'ls') {
         if (savedLinks.length === 0) {
-          pushLine('no saved links.')
+          pushOutputLine('no saved links.')
           return
         }
 
         savedLinks.forEach((item) => {
-          pushLine(`- ${item.nickname || 'untitled'}: ${item.url || ''}`)
+          pushOutputLine(`- ${item.nickname || 'untitled'}: ${item.url || ''}`)
         })
         return
       }
@@ -231,25 +246,25 @@ export default function Terminal({
       if (subcommand === 'new') {
         navigateTo('links')
         requestOpenLinksForm?.()
-        pushLine('links form opened.')
+        pushOutputLine('links form opened.')
         return
       }
 
       if (subcommand === 'drop') {
         const result = await deleteLinkByNickname?.(value)
-        pushLine(result?.message || `link not found: ${value}`)
+        pushOutputLine(result?.message || `link not found: ${value}`)
         return
       }
 
       if (subcommand === 'roulette') {
         if (savedLinks.length === 0) {
-          pushLine('no saved links to roulette.')
+          pushOutputLine('no saved links to roulette.')
           return
         }
 
         const chosenLink = savedLinks[Math.floor(Math.random() * savedLinks.length)]
         window.open(chosenLink.url, '_blank', 'noopener,noreferrer')
-        pushLine(`opening ${chosenLink.nickname || chosenLink.url}.`)
+        pushOutputLine(`opening ${chosenLink.nickname || chosenLink.url}.`)
         return
       }
     }
@@ -260,12 +275,12 @@ export default function Terminal({
 
       if (subcommand === 'ls') {
         if (cartItems.length === 0) {
-          pushLine('cart is empty.')
+          pushOutputLine('cart is empty.')
           return
         }
 
         cartItems.forEach((item) => {
-          pushLine(`- ${item.title || item.nickname || 'untitled'}: ${item.url || ''}`)
+          pushOutputLine(`- ${item.title || item.nickname || 'untitled'}: ${item.url || ''}`)
         })
         return
       }
@@ -273,13 +288,13 @@ export default function Terminal({
       if (subcommand === 'new') {
         navigateTo('cart')
         requestOpenCartForm?.()
-        pushLine('cart form opened.')
+        pushOutputLine('cart form opened.')
         return
       }
 
       if (subcommand === 'drop') {
         const result = await deleteCartItemByNickname?.(value)
-        pushLine(result?.message || `cart item not found: ${value}`)
+        pushOutputLine(result?.message || `cart item not found: ${value}`)
         return
       }
 
@@ -295,32 +310,32 @@ export default function Terminal({
 
       if (subcommand === 'ls') {
         if (reminders.length === 0) {
-          pushLine('no active reminders.')
+          pushOutputLine('no active reminders.')
           return
         }
 
         reminders.forEach((item, index) => {
-          pushLine(`[${index}] ${item.text || 'untitled'}`)
+          pushOutputLine(`[${index}] ${item.text || 'untitled'}`)
         })
         return
       }
 
       if (subcommand === 'add') {
         const result = await addReminder?.(value)
-        pushLine(result?.message || 'reminder added.')
+        pushOutputLine(result?.message || 'reminder added.')
         return
       }
 
       if (subcommand === 'done') {
         const index = Number.parseInt(value, 10)
         const result = await deleteReminderByIndex?.(index)
-        pushLine(result?.message || `reminder ${index} completed.`)
+        pushOutputLine(result?.message || `reminder ${index} completed.`)
         return
       }
 
       if (subcommand === 'nuke') {
         const result = await deleteAllReminders?.()
-        pushLine(result?.message || '\\o/ BOOM')
+        pushOutputLine(result?.message || '\\o/ BOOM')
         return
       }
     }
@@ -331,46 +346,46 @@ export default function Terminal({
 
       if (subcommand === 'start') {
         const result = timerApi?.startTimerCountdown?.(value)
-        pushLine(result?.message || 'timer started.')
+        pushOutputLine(result?.message || 'timer started.')
         return
       }
 
       if (subcommand === 'stop') {
         const result = timerApi?.stopTimer?.()
-        pushLine(result?.message || 'timer stopped.')
+        pushOutputLine(result?.message || 'timer stopped.')
         return
       }
 
       if (subcommand === 'status') {
-        pushLine(timerApi?.getTimerStatus?.() || `time remaining: ${formatTimerMs(timerApi?.timerDisplayMs || 0)}`)
+        pushOutputLine(timerApi?.getTimerStatus?.() || `time remaining: ${formatTimerMs(timerApi?.timerDisplayMs || 0)}`)
         return
       }
 
       if (subcommand === 'hack') {
         timerApi?.startTimerCountdown?.(1)
-        pushLine(`root@system: ${randomHex(8)}::${randomBinary(8)}`)
-        pushLine(`decoding payload ${randomHex(6)}`)
-        pushLine(`packet stream ${randomBinary(16)}`)
+        pushOutputLine(`root@system: ${randomHex(8)}::${randomBinary(8)}`)
+        pushOutputLine(`decoding payload ${randomHex(6)}`)
+        pushOutputLine(`packet stream ${randomBinary(16)}`)
         return
       }
     }
 
     if (command === 'sudo') {
-      pushLine('user is not in the sudoers file. this incident will be reported.')
+      pushOutputLine('user is not in the sudoers file. this incident will be reported.')
       return
     }
 
     if (command === 'ping') {
-      pushLine(`reply from ${arg || 'input'}: bytes=32 time=14ms ttl=117.`)
+      pushOutputLine(`reply from ${arg || 'input'}: bytes=32 time=14ms ttl=117.`)
       return
     }
 
     if (command === 'matrix') {
       clearMatrix()
-      pushLine('opening matrix stream...')
+      pushOutputLine('opening matrix stream...')
       let linesPushed = 0
       matrixIntervalRef.current = setInterval(() => {
-        pushLine(randomBinary(42))
+        pushOutputLine(randomBinary(42))
         linesPushed += 1
         if (linesPushed >= 10) {
           clearMatrix()
@@ -380,11 +395,11 @@ export default function Terminal({
     }
 
     if (command === 'coffee') {
-      pushLine("error 418: i'm a teapot.")
+      pushOutputLine("error 418: i'm a teapot.")
       return
     }
 
-    pushLine(`command not found: ${trimmed}. type 'help' for available commands.`)
+    pushOutputLine(`command not found: ${trimmed}. type 'help' for available commands.`)
   }
 
   const handleSubmit = async (event) => {
@@ -400,7 +415,7 @@ export default function Terminal({
       return
     }
 
-    setOutputLines((current) => [...current, { id: lineIdRef.current++, text: `$_ ${rawInput}` }])
+    pushCommandLine(rawInput)
     await executeCommand(rawInput)
     setCommandHistory((current) => [...current, rawInput])
     setHistoryCursor(null)
@@ -441,7 +456,7 @@ export default function Terminal({
   }
 
   return (
-    <section className="terminal-shell" aria-label="global terminal">
+    <section className="terminal-shell" aria-label="global terminal" onPointerDownCapture={handleTerminalPointerDown}>
       <div className="terminal-header">
         <span className="terminal-title">terminal</span>
         <button type="button" className="terminal-minimize" onClick={onExit}>hide</button>
@@ -467,8 +482,15 @@ export default function Terminal({
 
       <div className="terminal-output" ref={outputRef}>
         {outputLines.map((line) => (
-          <div key={line.id} className="terminal-line">
-            {line.text}
+          <div key={line.id} className={`terminal-line ${line.kind === 'command' ? 'terminal-command-line' : 'terminal-output-line'}`}>
+            {line.kind === 'command' ? (
+              <>
+                <span className="terminal-command-prefix">&lt;{userLabel}&gt; $_ &gt;&gt;</span>
+                <span className="terminal-command-text"> {line.text}</span>
+              </>
+            ) : (
+              line.text
+            )}
           </div>
         ))}
       </div>

@@ -630,7 +630,7 @@ button.danger:hover {
 }
 
 .terminal-prompt {
-  color: #fff;
+  color: #f5d742;
   flex-shrink: 0;
 }
 
@@ -639,10 +639,20 @@ button.danger:hover {
   background: transparent;
   border: none;
   outline: none;
-  color: #bfbfbf;
+  color: #f5d742;
   font-family: inherit;
   font-size: 0.95rem;
   text-transform: lowercase;
+}
+
+.terminal-command-line,
+.terminal-command-prefix,
+.terminal-command-text {
+  color: #f5d742;
+}
+
+.terminal-output-line {
+  color: #fff;
 }
 
 .terminal-input::selection {
