@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { db } from '../firebase';
 import { collection, addDoc, serverTimestamp, query, orderBy, onSnapshot, deleteDoc, doc, updateDoc, where, setDoc } from 'firebase/firestore';
 import { ExternalLink, MoreVertical, Trash2, Globe, Star, Edit2, ChevronUp, ChevronDown } from 'lucide-react';
 
-export default function LinkStorer({ collectionName = 'saved_links', title = 'Saved Links', isActive = true, user }) {
+export default function LinkStorer({ collectionName = 'saved_links', title = 'Saved Links', isActive = true, user, openFormSignal }) {
   const [url, setUrl] = useState('');
   const [nickname, setNickname] = useState('');
   const [description, setDescription] = useState('');
@@ -18,6 +18,7 @@ export default function LinkStorer({ collectionName = 'saved_links', title = 'Sa
   const [editingItem, setEditingItem] = useState(null);
   
   const [labelOrder, setLabelOrder] = useState([]);
+  const lastOpenSignal = useRef(openFormSignal);
 
   const handleMoveSection = async (e, sectionLabel, direction) => {
     e.preventDefault();
@@ -120,6 +121,14 @@ export default function LinkStorer({ collectionName = 'saved_links', title = 'Sa
       }
     };
   }, [collectionName, user]);
+
+  useEffect(() => {
+    if (openFormSignal === undefined) return;
+    if (lastOpenSignal.current !== openFormSignal) {
+      setIsFormOpen(true);
+      lastOpenSignal.current = openFormSignal;
+    }
+  }, [openFormSignal]);
 
   useEffect(() => {
     const handleClickOutside = () => setActiveMenu(null);

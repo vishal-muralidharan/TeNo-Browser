@@ -1,14 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { db } from '../firebase';
 import { collection, query, addDoc, deleteDoc, doc, onSnapshot, updateDoc } from 'firebase/firestore';
 import { ChevronUp, ChevronDown } from 'lucide-react';
 
-function Cart({ user }) {
+function Cart({ user, openFormSignal }) {
   const [items, setItems] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [title, setTitle] = useState('');
   const [url, setUrl] = useState('');
   const [label, setLabel] = useState('');
+  const lastOpenSignal = useRef(openFormSignal);
 
   useEffect(() => {
     if (!user) return;
@@ -24,6 +25,14 @@ function Cart({ user }) {
     });
     return unsubscribe;
   }, [user]);
+
+  useEffect(() => {
+    if (openFormSignal === undefined) return;
+    if (lastOpenSignal.current !== openFormSignal) {
+      setShowForm(true);
+      lastOpenSignal.current = openFormSignal;
+    }
+  }, [openFormSignal]);
 
   const addItem = async (e) => {
     e.preventDefault();

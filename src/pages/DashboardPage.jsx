@@ -2,17 +2,37 @@ import React, { useEffect, useRef, useState } from 'react'
 import LinkStorer from '../components/LinkStorer'
 import Reminders from '../components/Reminders'
 import Timer from '../components/Timer'
+import Terminal from '../components/Terminal'
 
-export default function DashboardPage({ user, onLogout }) {
-  const [activeTab, setActiveTab] = useState(0)
+export default function DashboardPage({
+  user,
+  onLogout,
+  activeTab,
+  setActiveTab,
+  terminalVisible,
+  setTerminalVisible,
+  savedLinks,
+  cartItems,
+  reminders,
+  linksFormToken,
+  cartFormToken,
+  requestOpenLinksForm,
+  requestOpenCartForm,
+  deleteLinkByNickname,
+  deleteCartItemByNickname,
+  addReminder,
+  deleteReminderByIndex,
+  deleteAllReminders,
+  timerApi,
+}) {
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
   const appContainerRef = useRef(null)
 
   const tabs = [
-    { id: 'links', label: 'Links', component: <LinkStorer collectionName="saved_links" title="Saved Links" user={user} /> },
-    { id: 'cart', label: 'Cart', component: <LinkStorer collectionName="cart_items" title="Cart" user={user} /> },
+    { id: 'links', label: 'Links', component: <LinkStorer collectionName="saved_links" title="Saved Links" user={user} openFormSignal={linksFormToken} /> },
+    { id: 'cart', label: 'Cart', component: <LinkStorer collectionName="cart_items" title="Cart" user={user} openFormSignal={cartFormToken} /> },
     { id: 'reminders', label: 'Reminders', component: <Reminders user={user} /> },
-    { id: 'timer', label: 'Timer', component: <Timer /> },
+    { id: 'timer', label: 'Timer', component: <Timer {...timerApi} /> },
   ]
 
   const handleTabSwitch = (index) => {
@@ -43,10 +63,10 @@ export default function DashboardPage({ user, onLogout }) {
   }, [])
 
   useEffect(() => {
-    const handleGlobalKeyDown = (e) => {
-      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return
+    const handleGlobalKeyDown = (event) => {
+      if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA') return
 
-      if (e.key.toLowerCase() === 's') {
+      if (event.key.toLowerCase() === 's') {
         const nextIndex = (activeTab + 1) % tabs.length
         setActiveTab(nextIndex)
       }
@@ -54,7 +74,7 @@ export default function DashboardPage({ user, onLogout }) {
 
     window.addEventListener('keydown', handleGlobalKeyDown)
     return () => window.removeEventListener('keydown', handleGlobalKeyDown)
-  }, [activeTab, tabs.length])
+  }, [activeTab, tabs.length, setActiveTab])
 
   return (
     <div className="app-layout" ref={appContainerRef} tabIndex={-1} style={{ outline: 'none' }}>
@@ -81,7 +101,7 @@ export default function DashboardPage({ user, onLogout }) {
         ))}
       </nav>
 
-      <main className="main-content slider-container">
+      <main className="main-content slider-container" style={{ paddingBottom: terminalVisible ? '30vh' : '1rem' }}>
         {tabs.map((tab, idx) => {
           let positionClass = 'slide-hidden'
           if (idx === activeTab) {
@@ -100,10 +120,37 @@ export default function DashboardPage({ user, onLogout }) {
         })}
       </main>
 
+      {terminalVisible ? (
+        <Terminal
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          onExit={() => setTerminalVisible(false)}
+          savedLinks={savedLinks}
+          cartItems={cartItems}
+          reminders={reminders}
+          requestOpenLinksForm={requestOpenLinksForm}
+          requestOpenCartForm={requestOpenCartForm}
+          deleteLinkByNickname={deleteLinkByNickname}
+          deleteCartItemByNickname={deleteCartItemByNickname}
+          addReminder={addReminder}
+          deleteReminderByIndex={deleteReminderByIndex}
+          deleteAllReminders={deleteAllReminders}
+          timerApi={timerApi}
+        />
+      ) : (
+        <button
+          type="button"
+          className="terminal-reopen-bar"
+          onClick={() => setTerminalVisible(true)}
+        >
+          $_ terminal hidden. type to reopen.
+        </button>
+      )}
+
       {showLogoutConfirm && (
         <div className="custom-modal-overlay">
           <div className="custom-modal">
-            <p style={{ marginBottom: '16px' }}>Confirm Log out?</p>
+            <p style={{ marginBottom: '16px' }}>confirm log out?</p>
             <div className="modal-actions">
               <button type="button" onClick={() => setShowLogoutConfirm(false)}>Cancel</button>
               <button type="button" className="btn-primary" onClick={() => { onLogout(); setShowLogoutConfirm(false) }}>Log out</button>

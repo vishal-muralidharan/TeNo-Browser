@@ -544,6 +544,127 @@ button.danger:hover {
   color: #000;
 }
 
+/* Global Terminal */
+.terminal-shell {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 30vh;
+  min-height: 190px;
+  max-height: 50vh;
+  display: flex;
+  flex-direction: column;
+  background: #000;
+  border-top: 1px solid #fff;
+  z-index: 40;
+  resize: vertical;
+  overflow: hidden;
+}
+
+.terminal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 10px;
+  border-bottom: 1px solid #333;
+  color: #fff;
+  background: #000;
+  text-transform: lowercase;
+}
+
+.terminal-title {
+  font-size: 0.85rem;
+  letter-spacing: 0.08em;
+}
+
+.terminal-minimize {
+  background: transparent;
+  border: 1px solid #444;
+  color: #fff;
+  padding: 2px 8px;
+  cursor: pointer;
+  border-radius: 0;
+}
+
+.terminal-output {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 10px;
+  color: #fff;
+  font-family: inherit;
+  font-size: 0.9rem;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  scrollbar-width: thin;
+  scrollbar-color: #fff #000;
+}
+
+.terminal-output::-webkit-scrollbar {
+  width: 8px;
+}
+
+.terminal-output::-webkit-scrollbar-thumb {
+  background: #fff;
+  border-radius: 0;
+}
+
+.terminal-output::-webkit-scrollbar-track {
+  background: #111;
+}
+
+.terminal-line {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.terminal-input-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-top: 1px solid #333;
+  padding: 8px 10px;
+  background: #000;
+}
+
+.terminal-prompt {
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.terminal-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #fff;
+  font-family: inherit;
+  font-size: 0.95rem;
+  text-transform: lowercase;
+}
+
+.terminal-input::selection {
+  background: #fff;
+  color: #000;
+}
+
+.terminal-reopen-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 28px;
+  background: #000;
+  border-top: 1px solid #fff;
+  color: #fff;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+  padding: 0 10px;
+  z-index: 40;
+}
+
 /* Checkbox (Reminders) */
 .checkbox-container {
   display: block;
