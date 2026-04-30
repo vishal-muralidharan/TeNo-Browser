@@ -77,6 +77,18 @@ export default function DashboardPage({
     return () => window.removeEventListener('keydown', handleGlobalKeyDown)
   }, [activeTab, tabs.length, setActiveTab])
 
+  useEffect(() => {
+    if (!terminalVisible) return undefined
+
+    const handleOutsideTerminalClick = (event) => {
+      if (event.target.closest('.terminal-shell')) return
+      setTerminalVisible(false)
+    }
+
+    document.addEventListener('pointerdown', handleOutsideTerminalClick)
+    return () => document.removeEventListener('pointerdown', handleOutsideTerminalClick)
+  }, [terminalVisible, setTerminalVisible])
+
   return (
     <div
       className={`app-layout ${terminalVisible ? 'terminal-open' : ''}`}
@@ -135,7 +147,6 @@ export default function DashboardPage({
 
       {terminalVisible ? (
         <div className="terminal-layer">
-          <div className="terminal-backdrop" onClick={() => setTerminalVisible(false)} />
           <Terminal
             user={user}
             activeTab={activeTab}

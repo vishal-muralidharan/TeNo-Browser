@@ -139,8 +139,8 @@ body {
   overflow-x: hidden;
   transition: transform 0.2s linear, opacity 0.2s linear; /* Hacker snappy transition */
   will-change: transform, opacity;
-  scrollbar-width: thin;
-  scrollbar-color: #fff #111;
+  scrollbar-width: auto;
+  scrollbar-color: #d9d9d9 #000;
 }
 
 .terminal-open .slide-pane {
@@ -149,20 +149,6 @@ body {
 
 .terminal-spacer {
   flex: 0 0 auto;
-}
-
-/* Blocky Terminal Internal Scrollbars */
-.slide-pane::-webkit-scrollbar {
-  width: 8px;
-  background: #111;
-}
-.slide-pane::-webkit-scrollbar-thumb {
-  background: #fff;
-  border-radius: 0;
-}
-.slide-pane::-webkit-scrollbar-track {
-  background: #111;
-  border-left: 1px solid var(--color-border);
 }
 
 .favorites-section {
@@ -641,12 +627,14 @@ button.danger:hover {
   text-transform: lowercase;
   scrollbar-width: thin;
   scrollbar-color: #fff #111;
+  pointer-events: auto;
 }
 
 .terminal-layer {
   position: fixed;
   inset: 0;
   z-index: 90;
+  pointer-events: none;
 }
 
 .terminal-backdrop {
@@ -685,46 +673,57 @@ button.danger:hover {
   overflow-y: auto;
   overflow-x: hidden;
   padding: 10px;
+  pointer-events: auto;
   color: #fff;
   font-family: inherit;
   font-size: 0.9rem;
   line-height: 1.45;
   white-space: pre-wrap;
-  scrollbar-width: thin;
-  scrollbar-color: #fff #111;
+  scrollbar-width: auto;
+  scrollbar-color: #d9d9d9 #000;
 }
 
-.terminal-output::-webkit-scrollbar {
-  width: 8px;
-}
-
-.terminal-output::-webkit-scrollbar-thumb {
-  background: #fff;
-  border-radius: 0;
-}
-
-.terminal-output::-webkit-scrollbar-track {
-  background: #111;
-}
-
+/* Vintage monochrome scrollbar theme */
 .terminal-output, .slide-pane {
-  scrollbar-color: #fff #111;
+  scrollbar-color: #d9d9d9 #000;
 }
 
 .terminal-output::-webkit-scrollbar,
 .slide-pane::-webkit-scrollbar {
-  width: 8px;
+  width: 14px;
+  height: 14px;
+  background: #000;
 }
 
 .terminal-output::-webkit-scrollbar-thumb,
 .slide-pane::-webkit-scrollbar-thumb {
-  background: #fff;
+  background: #d9d9d9;
+  border: 1px solid #000;
+  box-shadow: inset 1px 1px 0 #fff, inset -1px -1px 0 #000;
   border-radius: 0;
 }
 
 .terminal-output::-webkit-scrollbar-track,
 .slide-pane::-webkit-scrollbar-track {
-  background: #111;
+  background: #000;
+  border: 1px solid #fff;
+  box-shadow: inset 1px 1px 0 #000, inset -1px -1px 0 #fff;
+}
+
+.terminal-output::-webkit-scrollbar-corner,
+.slide-pane::-webkit-scrollbar-corner {
+  background: #000;
+  border: 1px solid #fff;
+}
+
+.terminal-output::-webkit-scrollbar-button,
+.slide-pane::-webkit-scrollbar-button {
+  display: block;
+  width: 14px;
+  height: 14px;
+  background: #d9d9d9;
+  border: 1px solid #000;
+  box-shadow: inset 1px 1px 0 #fff, inset -1px -1px 0 #000;
 }
 
 .terminal-line {
