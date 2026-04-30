@@ -34,6 +34,7 @@ export default function Terminal({
   activeTab,
   setActiveTab,
   onExit,
+  onHeightChange,
   savedLinks = [],
   cartItems = [],
   reminders = [],
@@ -52,6 +53,7 @@ export default function Terminal({
   ])
   const [commandHistory, setCommandHistory] = useState([])
   const [historyCursor, setHistoryCursor] = useState(null)
+  const shellRef = useRef(null)
   const outputRef = useRef(null)
   const inputRef = useRef(null)
   const lineIdRef = useRef(1)
@@ -92,6 +94,28 @@ export default function Terminal({
       }
     }
   }, [])
+
+  useEffect(() => {
+    if (!shellRef.current || !onHeightChange) return undefined
+
+    const emitHeight = () => {
+      const height = shellRef.current?.getBoundingClientRect?.().height
+      if (height) {
+        onHeightChange(Math.round(height))
+      }
+    }
+
+    emitHeight()
+
+    if (typeof ResizeObserver !== 'undefined') {
+      const observer = new ResizeObserver(() => emitHeight())
+      observer.observe(shellRef.current)
+      return () => observer.disconnect()
+    }
+
+    window.addEventListener('resize', emitHeight)
+    return () => window.removeEventListener('resize', emitHeight)
+  }, [onHeightChange])
 
   const pushOutputLine = (text) => {
     setOutputLines((current) => [...current, { id: lineIdRef.current++, kind: 'output', text }])
@@ -462,7 +486,7 @@ export default function Terminal({
   }
 
   return (
-    <section className="terminal-shell" aria-label="global terminal" onPointerDownCapture={handleTerminalPointerDown} onClick={(event) => event.stopPropagation()}>
+    <section ref={shellRef} className="terminal-shell" aria-label="global terminal" onPointerDownCapture={handleTerminalPointerDown} onClick={(event) => event.stopPropagation()}>
       <div className="terminal-header">
         <span className="terminal-title">terminal</span>
         <button type="button" className="terminal-minimize" onClick={onExit}>hide</button>

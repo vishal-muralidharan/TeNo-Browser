@@ -125,7 +125,7 @@ body {
 }
 
 .terminal-open .slider-container {
-  padding-bottom: calc(var(--terminal-height) + 1rem);
+  padding-bottom: 0;
 }
 
 .slide-pane {
@@ -144,7 +144,11 @@ body {
 }
 
 .terminal-open .slide-pane {
-  padding-bottom: calc(14px + var(--terminal-height));
+  padding-bottom: 14px;
+}
+
+.terminal-spacer {
+  flex: 0 0 auto;
 }
 
 /* Blocky Terminal Internal Scrollbars */
@@ -568,10 +572,20 @@ button.danger:hover {
   background-color: #000;
   border: 1px solid #fff;
   padding: 0;
-  z-index: 20;
+  z-index: 60;
   display: flex;
   flex-direction: column;
   max-width: calc(100vw - 24px);
+}
+
+.dropdown-menu-down {
+  top: 35px;
+  bottom: auto;
+}
+
+.dropdown-menu-up {
+  top: auto;
+  bottom: 30px;
 }
 
 .dropdown-menu button {
@@ -844,6 +858,10 @@ button.danger:hover {
   align-items: center;
   justify-content: center;
   z-index: 100;
+}
+
+.terminal-open .custom-modal {
+  transform: translateY(calc(var(--terminal-active-height, var(--terminal-height)) * -0.5));
 }
 .custom-modal {
   background: #000;

@@ -26,6 +26,7 @@ export default function DashboardPage({
   timerApi,
 }) {
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
+  const [terminalHeight, setTerminalHeight] = useState(280)
   const appContainerRef = useRef(null)
 
   const tabs = [
@@ -77,7 +78,12 @@ export default function DashboardPage({
   }, [activeTab, tabs.length, setActiveTab])
 
   return (
-    <div className={`app-layout ${terminalVisible ? 'terminal-open' : ''}`} ref={appContainerRef} tabIndex={-1} style={{ outline: 'none' }}>
+    <div
+      className={`app-layout ${terminalVisible ? 'terminal-open' : ''}`}
+      ref={appContainerRef}
+      tabIndex={-1}
+      style={{ outline: 'none', '--terminal-active-height': `${terminalHeight}px` }}
+    >
       <header className="app-header">
         <div className="brand" style={{ display: 'flex', justifyContent: 'space-between', width: '100%', paddingRight: '1rem', alignItems: 'center' }}>
           <h1>teno</h1>
@@ -114,11 +120,18 @@ export default function DashboardPage({
 
           return (
             <div key={tab.id} className={`slide-pane ${positionClass}`}>
-              {React.cloneElement(tab.component, { isActive: activeTab === idx, user })}
+              {React.cloneElement(tab.component, {
+                isActive: activeTab === idx,
+                user,
+                terminalVisible,
+                terminalHeight,
+              })}
             </div>
           )
         })}
       </main>
+
+      {terminalVisible ? <div className="terminal-spacer" style={{ height: `${terminalHeight}px` }} aria-hidden="true" /> : null}
 
       {terminalVisible ? (
         <div className="terminal-layer">
@@ -128,6 +141,7 @@ export default function DashboardPage({
             activeTab={activeTab}
             setActiveTab={setActiveTab}
             onExit={() => setTerminalVisible(false)}
+            onHeightChange={setTerminalHeight}
             savedLinks={savedLinks}
             cartItems={cartItems}
             reminders={reminders}

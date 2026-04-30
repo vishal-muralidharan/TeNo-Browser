@@ -3,7 +3,7 @@ import { db } from '../firebase';
 import { collection, addDoc, serverTimestamp, query, orderBy, onSnapshot, deleteDoc, doc, updateDoc, where, setDoc } from 'firebase/firestore';
 import { ExternalLink, MoreVertical, Trash2, Globe, Star, Edit2, ChevronUp, ChevronDown } from 'lucide-react';
 
-export default function LinkStorer({ collectionName = 'saved_links', title = 'Saved Links', isActive = true, user, openFormSignal }) {
+export default function LinkStorer({ collectionName = 'saved_links', title = 'Saved Links', isActive = true, user, openFormSignal, terminalVisible = false, terminalHeight = 0 }) {
   const [url, setUrl] = useState('');
   const [nickname, setNickname] = useState('');
   const [description, setDescription] = useState('');
@@ -11,6 +11,7 @@ export default function LinkStorer({ collectionName = 'saved_links', title = 'Sa
   const [links, setLinks] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [activeMenu, setActiveMenu] = useState(null);
+  const [activeMenuDirection, setActiveMenuDirection] = useState('down');
   const [isFormOpen, setIsFormOpen] = useState(false);
 
   // Custom Modal State
@@ -142,7 +143,10 @@ export default function LinkStorer({ collectionName = 'saved_links', title = 'Sa
   }, [isFormOpen]);
 
   useEffect(() => {
-    const handleClickOutside = () => setActiveMenu(null);
+    const handleClickOutside = () => {
+      setActiveMenu(null);
+      setActiveMenuDirection('down');
+    };
     document.addEventListener('click', handleClickOutside);
     return () => document.removeEventListener('click', handleClickOutside);
   }, []);
@@ -453,13 +457,23 @@ export default function LinkStorer({ collectionName = 'saved_links', title = 'Sa
                       className="icon-btn"
                       onClick={(e) => {
                         e.stopPropagation();
-                        setActiveMenu(activeMenu === link.id ? null : link.id);
+                        if (activeMenu === link.id) {
+                          setActiveMenu(null);
+                          setActiveMenuDirection('down');
+                          return;
+                        }
+
+                        const triggerRect = e.currentTarget.getBoundingClientRect();
+                        const availableBelow = window.innerHeight - triggerRect.bottom - (terminalVisible ? terminalHeight : 0);
+                        const estimatedMenuHeight = 132;
+                        setActiveMenuDirection(availableBelow < estimatedMenuHeight ? 'up' : 'down');
+                        setActiveMenu(link.id);
                       }}
                     >
                       <MoreVertical size={14} />
                     </button>
                     {activeMenu === link.id && (
-                      <div className="dropdown-menu" onClick={(e) => e.stopPropagation()}>
+                      <div className={`dropdown-menu ${activeMenuDirection === 'up' ? 'dropdown-menu-up' : 'dropdown-menu-down'}`} onClick={(e) => e.stopPropagation()}>
                           <button onClick={(e) => handleOpen(e, link.url, true)}>
                           <ExternalLink size={14} /> New Window
                         </button>
