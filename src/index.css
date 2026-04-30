@@ -7,6 +7,7 @@
   --color-bg-hover: #ffffff;
   --color-border: #333333;
   --link-card-width: 240px;
+  --terminal-height: clamp(190px, 30vh, 50vh);
   
   --color-text-main: #ffffff;
   --color-text-muted: #888888;
@@ -123,6 +124,10 @@ body {
   padding: 0; 
 }
 
+.terminal-open .slider-container {
+  padding-bottom: calc(var(--terminal-height) + 1rem);
+}
+
 .slide-pane {
   position: absolute;
   top: 0;
@@ -134,12 +139,18 @@ body {
   overflow-x: hidden;
   transition: transform 0.2s linear, opacity 0.2s linear; /* Hacker snappy transition */
   will-change: transform, opacity;
+  scrollbar-width: thin;
+  scrollbar-color: #fff #111;
+}
+
+.terminal-open .slide-pane {
+  padding-bottom: calc(14px + var(--terminal-height));
 }
 
 /* Blocky Terminal Internal Scrollbars */
 .slide-pane::-webkit-scrollbar {
   width: 8px;
-  background: #000;
+  background: #111;
 }
 .slide-pane::-webkit-scrollbar-thumb {
   background: #fff;
@@ -148,6 +159,59 @@ body {
 .slide-pane::-webkit-scrollbar-track {
   background: #111;
   border-left: 1px solid var(--color-border);
+}
+
+.favorites-section {
+  margin-bottom: 18px;
+}
+
+.label-sections-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  align-items: start;
+}
+
+.label-group-card {
+  margin-bottom: 0;
+}
+
+.list-container.favorites-grid,
+.list-container.label-grid-three {
+  display: grid;
+  gap: 10px;
+  align-items: start;
+}
+
+.list-container.favorites-grid {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+
+.list-container.label-grid-three {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.list-container.favorites-grid > .list-item,
+.list-container.label-grid-three > .list-item {
+  width: 100%;
+  min-width: 0;
+}
+
+@media (max-width: 900px) {
+  .label-sections-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .list-container.favorites-grid,
+  .list-container.label-grid-three {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 1400px) and (min-width: 901px) {
+  .list-container.favorites-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
 }
 
 .slide-hidden {
@@ -550,17 +614,31 @@ button.danger:hover {
   left: 0;
   right: 0;
   bottom: 0;
-  height: 30vh;
+  height: var(--terminal-height);
   min-height: 190px;
   max-height: 50vh;
   display: flex;
   flex-direction: column;
   background: #000;
   border-top: 1px solid #fff;
-  z-index: 40;
+  z-index: 91;
   resize: vertical;
   overflow: hidden;
   text-transform: lowercase;
+  scrollbar-width: thin;
+  scrollbar-color: #fff #111;
+}
+
+.terminal-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+}
+
+.terminal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.12);
 }
 
 .terminal-header {
@@ -599,7 +677,7 @@ button.danger:hover {
   line-height: 1.45;
   white-space: pre-wrap;
   scrollbar-width: thin;
-  scrollbar-color: #fff #000;
+  scrollbar-color: #fff #111;
 }
 
 .terminal-output::-webkit-scrollbar {
@@ -612,6 +690,26 @@ button.danger:hover {
 }
 
 .terminal-output::-webkit-scrollbar-track {
+  background: #111;
+}
+
+.terminal-output, .slide-pane {
+  scrollbar-color: #fff #111;
+}
+
+.terminal-output::-webkit-scrollbar,
+.slide-pane::-webkit-scrollbar {
+  width: 8px;
+}
+
+.terminal-output::-webkit-scrollbar-thumb,
+.slide-pane::-webkit-scrollbar-thumb {
+  background: #fff;
+  border-radius: 0;
+}
+
+.terminal-output::-webkit-scrollbar-track,
+.slide-pane::-webkit-scrollbar-track {
   background: #111;
 }
 

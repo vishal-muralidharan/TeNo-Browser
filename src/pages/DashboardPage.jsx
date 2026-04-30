@@ -77,7 +77,7 @@ export default function DashboardPage({
   }, [activeTab, tabs.length, setActiveTab])
 
   return (
-    <div className="app-layout" ref={appContainerRef} tabIndex={-1} style={{ outline: 'none' }}>
+    <div className={`app-layout ${terminalVisible ? 'terminal-open' : ''}`} ref={appContainerRef} tabIndex={-1} style={{ outline: 'none' }}>
       <header className="app-header">
         <div className="brand" style={{ display: 'flex', justifyContent: 'space-between', width: '100%', paddingRight: '1rem', alignItems: 'center' }}>
           <h1>teno</h1>
@@ -101,7 +101,7 @@ export default function DashboardPage({
         ))}
       </nav>
 
-      <main className="main-content slider-container" style={{ paddingBottom: terminalVisible ? '30vh' : '1rem' }}>
+      <main className="main-content slider-container">
         {tabs.map((tab, idx) => {
           let positionClass = 'slide-hidden'
           if (idx === activeTab) {
@@ -121,23 +121,26 @@ export default function DashboardPage({
       </main>
 
       {terminalVisible ? (
-        <Terminal
-          user={user}
-          activeTab={activeTab}
-          setActiveTab={setActiveTab}
-          onExit={() => setTerminalVisible(false)}
-          savedLinks={savedLinks}
-          cartItems={cartItems}
-          reminders={reminders}
-          requestOpenLinksForm={requestOpenLinksForm}
-          requestOpenCartForm={requestOpenCartForm}
-          deleteLinkByNickname={deleteLinkByNickname}
-          deleteCartItemByNickname={deleteCartItemByNickname}
-          addReminder={addReminder}
-          deleteReminderByIndex={deleteReminderByIndex}
-          deleteAllReminders={deleteAllReminders}
-          timerApi={timerApi}
-        />
+        <div className="terminal-layer">
+          <div className="terminal-backdrop" onClick={() => setTerminalVisible(false)} />
+          <Terminal
+            user={user}
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+            onExit={() => setTerminalVisible(false)}
+            savedLinks={savedLinks}
+            cartItems={cartItems}
+            reminders={reminders}
+            requestOpenLinksForm={requestOpenLinksForm}
+            requestOpenCartForm={requestOpenCartForm}
+            deleteLinkByNickname={deleteLinkByNickname}
+            deleteCartItemByNickname={deleteCartItemByNickname}
+            addReminder={addReminder}
+            deleteReminderByIndex={deleteReminderByIndex}
+            deleteAllReminders={deleteAllReminders}
+            timerApi={timerApi}
+          />
+        </div>
       ) : (
         <button
           type="button"

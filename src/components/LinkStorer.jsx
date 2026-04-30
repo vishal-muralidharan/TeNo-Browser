@@ -385,13 +385,13 @@ export default function LinkStorer({ collectionName = 'saved_links', title = 'Sa
     }
   };
 
-  const renderLinkCells = (sectionLinks, startIndex = 0, showLabelChip = true, sectionKey = '') => {
+  const renderLinkCells = (sectionLinks, startIndex = 0, showLabelChip = true, sectionKey = '', gridClassName = '') => {
     if (sectionLinks.length === 0) {
       return <p className="section-empty">No items yet</p>;
     }
 
     return (
-      <div className="list-container">
+      <div className={`list-container ${gridClassName}`.trim()}>
         {sectionLinks.map((link, localIndex) => {
           const index = startIndex + localIndex;
           const globalIndex = findItemPosition(link.id);
@@ -525,52 +525,65 @@ export default function LinkStorer({ collectionName = 'saved_links', title = 'Sa
 
       <h2 className="tab-title">{title}</h2>
 
-      {displaySections.map((section) => {
-        const customSections = displaySections.filter(s => s.key !== 'favorites' && s.key !== 'ungrouped');
-        const sIndex = customSections.findIndex(s => s.key === section.key);
-        const canSectionMoveUp = sIndex > 0;
-        const canSectionMoveDown = sIndex !== -1 && sIndex < customSections.length - 1;
+      {displaySections.filter((section) => section.key === 'favorites').map((section) => (
+        <section key={section.key} className="section-block favorites-section">
+          <h3 className="section-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span>{section.title}</span>
+          </h3>
+          {renderLinkCells(section.items, 0, true, section.key, 'favorites-grid')}
+        </section>
+      ))}
 
-        return (
+      <div className="label-sections-grid">
+        {displaySections.filter((section) => section.key !== 'favorites' && section.key !== 'ungrouped').map((section) => {
+          const customSections = displaySections.filter(s => s.key !== 'favorites' && s.key !== 'ungrouped');
+          const sIndex = customSections.findIndex(s => s.key === section.key);
+          const canSectionMoveUp = sIndex > 0;
+          const canSectionMoveDown = sIndex !== -1 && sIndex < customSections.length - 1;
+
+          return (
+            <section key={section.key} className="section-block label-group-card">
+              <h3 className="section-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span>{section.title}</span>
+                <div className="order-controls" style={{ display: 'flex', flexDirection: 'column', padding: '0 2px', gap: '0px' }}>
+                  <button 
+                    type="button"
+                    className="icon-btn" 
+                    onClick={(e) => handleMoveSection(e, section.label, -1)}
+                    disabled={!canSectionMoveUp}
+                    style={{ padding: '0px', border: 'none', height: '12px', lineHeight: 1 }}
+                    title="Move section up"
+                  >
+                    <ChevronUp size={12} opacity={canSectionMoveUp ? 0.8 : 0.3} />
+                  </button>
+                  <button 
+                    type="button"
+                    className="icon-btn" 
+                    onClick={(e) => handleMoveSection(e, section.label, 1)}
+                    disabled={!canSectionMoveDown}
+                    style={{ padding: '0px', border: 'none', height: '12px', lineHeight: 1 }}
+                    title="Move section down"
+                  >
+                    <ChevronDown size={12} opacity={canSectionMoveDown ? 0.8 : 0.3} />
+                  </button>
+                </div>
+              </h3>
+              {renderLinkCells(section.items, 0, false, section.key, 'label-grid-three')}
+            </section>
+          )
+        })}
+      </div>
+
+      {displaySections.filter((section) => section.key === 'ungrouped').map((section) => (
         <section key={section.key} className="section-block">
           <h3 className="section-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span>{section.title}</span>
-            {section.key !== 'favorites' && section.key !== 'ungrouped' && (
-              <div className="order-controls" style={{ display: 'flex', flexDirection: 'column', padding: '0 2px', gap: '0px' }}>
-                <button 
-                  type="button"
-                  className="icon-btn" 
-                  onClick={(e) => handleMoveSection(e, section.label, -1)}
-                  disabled={!canSectionMoveUp}
-                  style={{ padding: '0px', border: 'none', height: '12px', lineHeight: 1 }}
-                  title="Move section up"
-                >
-                  <ChevronUp size={12} opacity={canSectionMoveUp ? 0.8 : 0.3} />
-                </button>
-                <button 
-                  type="button"
-                  className="icon-btn" 
-                  onClick={(e) => handleMoveSection(e, section.label, 1)}
-                  disabled={!canSectionMoveDown}
-                  style={{ padding: '0px', border: 'none', height: '12px', lineHeight: 1 }}
-                  title="Move section down"
-                >
-                  <ChevronDown size={12} opacity={canSectionMoveDown ? 0.8 : 0.3} />
-                </button>
-              </div>
-            )}
           </h3>
-          {section.key !== 'favorites' && section.key !== 'ungrouped' ? (
-            renderLinkCells(section.items, 0, false, section.key)
-          ) : section.key === 'ungrouped' ? (
-            <div className="label-section">
-              {renderLinkCells(section.items, 0, false, section.key)}
-            </div>
-          ) : (
-            renderLinkCells(section.items, 0, true, section.key)
-          )}
+          <div className="label-section">
+            {renderLinkCells(section.items, 0, false, section.key)}
+          </div>
         </section>
-      )})}
+      ))}
 
       {pendingDelete && (
         <div className="custom-modal-overlay">

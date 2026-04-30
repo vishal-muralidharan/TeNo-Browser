@@ -462,7 +462,7 @@ export default function Terminal({
   }
 
   return (
-    <section className="terminal-shell" aria-label="global terminal" onPointerDownCapture={handleTerminalPointerDown}>
+    <section className="terminal-shell" aria-label="global terminal" onPointerDownCapture={handleTerminalPointerDown} onClick={(event) => event.stopPropagation()}>
       <div className="terminal-header">
         <span className="terminal-title">terminal</span>
         <button type="button" className="terminal-minimize" onClick={onExit}>hide</button>
