@@ -45,7 +45,7 @@ function App() {
   const [user, setUser] = useState(null)
   const [loadingAuth, setLoadingAuth] = useState(true)
   const [activeTab, setActiveTab] = useState(TAB_INDEX.links)
-  const [terminalVisible, setTerminalVisible] = useState(true)
+  const [terminalVisible, setTerminalVisible] = useState(false)
   const [linksFormToken, setLinksFormToken] = useState(0)
   const [cartFormToken, setCartFormToken] = useState(0)
   const [savedLinks, setSavedLinks] = useState([])
