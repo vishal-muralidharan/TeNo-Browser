@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { onAuthStateChanged, signOut } from 'firebase/auth'
-import { collection, query, getDocs, writeBatch, doc, onSnapshot, addDoc, deleteDoc } from 'firebase/firestore'
+import { collection, query, getDocs, writeBatch, doc, onSnapshot, addDoc, deleteDoc, setDoc, updateDoc, increment } from 'firebase/firestore'
 import { auth, db } from './firebase'
 import LoginPage from './pages/LoginPage'
 import DashboardPage from './pages/DashboardPage'
+import SettingsPage from './pages/SettingsPage'
 import { setupTypingCaret } from '../sm/typingCaret'
 
 const TAB_INDEX = {
@@ -52,6 +53,7 @@ function App() {
   const [savedLinks, setSavedLinks] = useState([])
   const [cartItems, setCartItems] = useState([])
   const [reminders, setReminders] = useState([])
+  const [favoritesRowCount, setFavoritesRowCount] = useState(2)
 
   const [timerState, setTimerState] = useState('idle')
   const [timerMode, setTimerMode] = useState('stopwatch')
@@ -75,6 +77,21 @@ function App() {
   }, [])
 
   useEffect(() => setupTypingCaret(), [])
+
+  useEffect(() => {
+    if (!user) {
+      setFavoritesRowCount(2)
+      return undefined
+    }
+
+    const settingsRef = doc(db, 'users', user.uid, 'settings', 'ui')
+    const unsubSettings = onSnapshot(settingsRef, (snapshot) => {
+      const nextValue = Number(snapshot.data()?.favoritesRowCount)
+      setFavoritesRowCount(Number.isFinite(nextValue) && nextValue > 0 ? nextValue : 2)
+    })
+
+    return unsubSettings
+  }, [user])
 
   useEffect(() => {
     if (!user) {
@@ -178,6 +195,34 @@ function App() {
 
   const requestOpenLinksForm = () => setLinksFormToken((value) => value + 1)
   const requestOpenCartForm = () => setCartFormToken((value) => value + 1)
+
+  const recordLinkOpen = async ({ collectionName, link }) => {
+    if (!user || !collectionName || !link?.id) return
+
+    try {
+      await updateDoc(doc(db, 'users', user.uid, collectionName, link.id), {
+        clickCount: increment(1),
+        lastClickedAt: new Date().toISOString(),
+      })
+    } catch (error) {
+      console.error('Failed to record link open:', error)
+    }
+  }
+
+  const updateFavoritesRowCount = async (nextValue) => {
+    const parsedValue = Math.max(1, Math.min(8, Number(nextValue) || 2))
+    setFavoritesRowCount(parsedValue)
+
+    if (!user) return { ok: false, message: 'no active user.' }
+
+    try {
+      await setDoc(doc(db, 'users', user.uid, 'settings', 'ui'), { favoritesRowCount: parsedValue }, { merge: true })
+      return { ok: true, message: 'settings saved.' }
+    } catch (error) {
+      console.error('Failed to save settings:', error)
+      return { ok: false, message: 'failed to save settings.' }
+    }
+  }
 
   const addReminder = async (text) => {
     const cleanText = text.trim()
@@ -337,6 +382,7 @@ function App() {
                 savedLinks={savedLinks}
                 cartItems={cartItems}
                 reminders={reminders}
+                favoritesRowCount={favoritesRowCount}
                 linksFormToken={linksFormToken}
                 cartFormToken={cartFormToken}
                 requestOpenLinksForm={requestOpenLinksForm}
@@ -346,6 +392,7 @@ function App() {
                 addReminder={addReminder}
                 deleteReminderByIndex={deleteReminderByIndex}
                 deleteAllReminders={deleteAllReminders}
+                recordLinkOpen={recordLinkOpen}
                 timerApi={{
                   timerState,
                   timerMode,
@@ -360,6 +407,24 @@ function App() {
                   getTimerStatus,
                   formatTimerMs,
                 }}
+              />
+            ) : (
+              <Navigate to="/login" replace />
+            )
+          }
+        />
+        <Route
+          path="/settings"
+          element={
+            user ? (
+              <SettingsPage
+                user={user}
+                savedLinks={savedLinks}
+                cartItems={cartItems}
+                reminders={reminders}
+                favoritesRowCount={favoritesRowCount}
+                onFavoritesRowCountChange={updateFavoritesRowCount}
+                onLogout={handleLogout}
               />
             ) : (
               <Navigate to="/login" replace />

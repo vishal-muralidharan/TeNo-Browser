@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import LinkStorer from '../components/LinkStorer'
 import Reminders from '../components/Reminders'
 import Timer from '../components/Timer'
@@ -14,6 +15,7 @@ export default function DashboardPage({
   savedLinks,
   cartItems,
   reminders,
+  favoritesRowCount,
   linksFormToken,
   cartFormToken,
   requestOpenLinksForm,
@@ -23,15 +25,17 @@ export default function DashboardPage({
   addReminder,
   deleteReminderByIndex,
   deleteAllReminders,
+  recordLinkOpen,
   timerApi,
 }) {
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
   const [terminalHeight, setTerminalHeight] = useState(280)
   const appContainerRef = useRef(null)
+  const navigate = useNavigate()
 
   const tabs = [
-    { id: 'links', label: 'Links', component: <LinkStorer collectionName="saved_links" title="Saved Links" user={user} openFormSignal={linksFormToken} /> },
-    { id: 'cart', label: 'Cart', component: <LinkStorer collectionName="cart_items" title="Cart" user={user} openFormSignal={cartFormToken} /> },
+    { id: 'links', label: 'Links', component: <LinkStorer collectionName="saved_links" title="Saved Links" user={user} openFormSignal={linksFormToken} favoritesRowCount={favoritesRowCount} onLinkOpen={recordLinkOpen} /> },
+    { id: 'cart', label: 'Cart', component: <LinkStorer collectionName="cart_items" title="Cart" user={user} openFormSignal={cartFormToken} onLinkOpen={recordLinkOpen} /> },
     { id: 'reminders', label: 'Reminders', component: <Reminders user={user} /> },
     { id: 'timer', label: 'Timer', component: <Timer {...timerApi} /> },
   ]
@@ -100,6 +104,9 @@ export default function DashboardPage({
         <div className="brand" style={{ display: 'flex', justifyContent: 'space-between', width: '100%', paddingRight: '1rem', alignItems: 'center' }}>
           <h1>teno</h1>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.8rem' }}>
+            <button onClick={() => navigate('/settings')} style={{ background: 'transparent', border: '1px solid #444', color: '#888', padding: '0.2rem 0.5rem', borderRadius: '4px', cursor: 'pointer', fontSize: 'inherit' }}>
+              settings
+            </button>
             <button onClick={() => setShowLogoutConfirm(true)} style={{ background: 'transparent', border: '1px solid #444', color: '#888', padding: '0.2rem 0.5rem', borderRadius: '4px', cursor: 'pointer', fontSize: 'inherit' }}>
               logout
             </button>
@@ -163,6 +170,7 @@ export default function DashboardPage({
             addReminder={addReminder}
             deleteReminderByIndex={deleteReminderByIndex}
             deleteAllReminders={deleteAllReminders}
+            onLinkOpen={recordLinkOpen}
             timerApi={timerApi}
           />
         </div>

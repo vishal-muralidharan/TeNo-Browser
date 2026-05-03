@@ -3,7 +3,7 @@ import { db } from '../firebase';
 import { collection, addDoc, serverTimestamp, query, orderBy, onSnapshot, deleteDoc, doc, updateDoc, where, setDoc } from 'firebase/firestore';
 import { ExternalLink, MoreVertical, Trash2, Globe, Star, Edit2, ChevronUp, ChevronDown } from 'lucide-react';
 
-export default function LinkStorer({ collectionName = 'saved_links', title = 'Saved Links', isActive = true, user, openFormSignal, terminalVisible = false, terminalHeight = 0 }) {
+export default function LinkStorer({ collectionName = 'saved_links', title = 'Saved Links', isActive = true, user, openFormSignal, terminalVisible = false, terminalHeight = 0, favoritesRowCount = 2, onLinkOpen }) {
   const [url, setUrl] = useState('');
   const [nickname, setNickname] = useState('');
   const [description, setDescription] = useState('');
@@ -186,21 +186,23 @@ export default function LinkStorer({ collectionName = 'saved_links', title = 'Sa
     setIsSubmitting(false);
   };
 
-  const handleOpen = (e, linkUrl, newWindow = false) => {
+  const handleOpen = (e, link, newWindow = false) => {
     if (e && e.preventDefault) {
       e.preventDefault();
       e.stopPropagation();
     }
 
+    void onLinkOpen?.({ collectionName, link });
+
     if (typeof chrome !== 'undefined' && chrome.tabs) {
       if (newWindow) {
-        chrome.windows.create({ url: linkUrl });
+        chrome.windows.create({ url: link.url });
       } else {
-        chrome.tabs.create({ url: linkUrl, active: false });
+        chrome.tabs.create({ url: link.url, active: false });
       }
     } else {
       // Fallback for non-extension environment (Vite Dev Server)
-      const win = window.open(linkUrl, '_blank');
+      const win = window.open(link.url, '_blank');
       if (win) {
         win.blur();
         window.focus();
@@ -363,7 +365,7 @@ export default function LinkStorer({ collectionName = 'saved_links', title = 'Sa
       if (!isNaN(keyIndex) && keyIndex >= 0 && keyIndex < 9) {
         const entry = flattenedDisplay[keyIndex];
         if (entry) {
-          handleOpen(e, entry.link.url);
+          handleOpen(e, entry.link);
         }
       }
     };
@@ -389,13 +391,13 @@ export default function LinkStorer({ collectionName = 'saved_links', title = 'Sa
     }
   };
 
-  const renderLinkCells = (sectionLinks, startIndex = 0, showLabelChip = true, sectionKey = '', gridClassName = '') => {
+  const renderLinkCells = (sectionLinks, startIndex = 0, showLabelChip = true, sectionKey = '', gridClassName = '', gridStyle = {}) => {
     if (sectionLinks.length === 0) {
       return <p className="section-empty">No items yet</p>;
     }
 
     return (
-      <div className={`list-container ${gridClassName}`.trim()}>
+      <div className={`list-container ${gridClassName}`.trim()} style={gridStyle}>
         {sectionLinks.map((link, localIndex) => {
           const index = startIndex + localIndex;
           const globalIndex = findItemPosition(link.id);
@@ -406,7 +408,7 @@ export default function LinkStorer({ collectionName = 'saved_links', title = 'Sa
           return (
             <React.Fragment key={link.id}>
               <div className="list-item">
-                <div className="item-content" onClick={(e) => handleOpen(e, link.url)}>
+                <div className="item-content" onClick={(e) => handleOpen(e, link)}>
                   <img
                     src={`https://s2.googleusercontent.com/s2/favicons?domain=${link.domain}&sz=64`}
                     onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'block'; }}
@@ -474,7 +476,7 @@ export default function LinkStorer({ collectionName = 'saved_links', title = 'Sa
                     </button>
                     {activeMenu === link.id && (
                       <div className={`dropdown-menu ${activeMenuDirection === 'up' ? 'dropdown-menu-up' : 'dropdown-menu-down'}`} onClick={(e) => e.stopPropagation()}>
-                          <button onClick={(e) => handleOpen(e, link.url, true)}>
+                          <button onClick={(e) => handleOpen(e, link, true)}>
                           <ExternalLink size={14} /> New Window
                         </button>
                         <button onClick={() => requestEdit(link)}>
@@ -552,7 +554,7 @@ export default function LinkStorer({ collectionName = 'saved_links', title = 'Sa
           <h3 className="section-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span>{section.title}</span>
           </h3>
-          {renderLinkCells(section.items, 0, true, section.key, 'favorites-grid')}
+          {renderLinkCells(section.items, 0, true, section.key, 'favorites-grid', { '--favorites-row-count': favoritesRowCount })}
         </section>
       ))}
 

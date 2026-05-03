@@ -45,6 +45,7 @@ export default function Terminal({
   addReminder,
   deleteReminderByIndex,
   deleteAllReminders,
+  onLinkOpen,
   timerApi,
 }) {
   const [input, setInput] = useState('')
@@ -293,6 +294,7 @@ export default function Terminal({
         }
 
         const chosenLink = savedLinks[Math.floor(Math.random() * savedLinks.length)]
+        void onLinkOpen?.({ collectionName: 'saved_links', link: chosenLink })
         window.open(chosenLink.url, '_blank', 'noopener,noreferrer')
         pushOutputLine(`opening ${chosenLink.nickname || chosenLink.url}.`)
         return
