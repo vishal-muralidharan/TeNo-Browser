@@ -1,5 +1,7 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { EmailAuthProvider, reauthenticateWithCredential, updatePassword } from 'firebase/auth'
+import { auth } from '../firebase'
 
 const normalizeLabel = (value) => (value || '').trim().toLowerCase()
 const getDisplayName = (item) => item.nickname || item.title || item.url || 'untitled'
@@ -24,6 +26,13 @@ export default function SettingsPage({
   onLogout,
 }) {
   const navigate = useNavigate()
+  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false)
+  const [currentPassword, setCurrentPassword] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmNewPassword, setConfirmNewPassword] = useState('')
+  const [passwordStatus, setPasswordStatus] = useState('')
+  const [passwordError, setPasswordError] = useState('')
+  const [isSavingPassword, setIsSavingPassword] = useState(false)
   const allItems = [...savedLinks, ...cartItems]
 
   const labelStats = allItems.reduce((accumulator, item) => {
@@ -53,6 +62,73 @@ export default function SettingsPage({
   const topClickedLinkCount = topClickedLink ? getItemClickCount(topClickedLink) : 0
   const topClickedLabelCount = topClickedLabel ? topClickedLabel.clickCount : 0
 
+  const handlePasswordChange = async (event) => {
+    event.preventDefault()
+
+    if (!currentPassword || !newPassword || !confirmNewPassword) {
+      setPasswordError('fill in all password fields.')
+      setPasswordStatus('')
+      return
+    }
+
+    if (newPassword !== confirmNewPassword) {
+      setPasswordError('new passwords do not match.')
+      setPasswordStatus('')
+      return
+    }
+
+    if (newPassword.length < 8) {
+      setPasswordError('new password must be at least 8 characters long.')
+      setPasswordStatus('')
+      return
+    }
+
+    if (!user?.email) {
+      setPasswordError('current account email is unavailable.')
+      setPasswordStatus('')
+      return
+    }
+
+    try {
+      setIsSavingPassword(true)
+      setPasswordError('')
+      setPasswordStatus('')
+
+      const credential = EmailAuthProvider.credential(user.email, currentPassword)
+      await reauthenticateWithCredential(auth.currentUser, credential)
+      await updatePassword(auth.currentUser, newPassword)
+
+      setPasswordStatus('password updated.')
+      setCurrentPassword('')
+      setNewPassword('')
+      setConfirmNewPassword('')
+    } catch (error) {
+      console.error(error)
+      setPasswordError(error?.code === 'auth/wrong-password' ? 'current password is incorrect.' : (error?.message || 'failed to update password.'))
+      setPasswordStatus('')
+    } finally {
+      setIsSavingPassword(false)
+    }
+  }
+
+  const openPasswordModal = () => {
+    setPasswordError('')
+    setPasswordStatus('')
+    setCurrentPassword('')
+    setNewPassword('')
+    setConfirmNewPassword('')
+    setIsPasswordModalOpen(true)
+  }
+
+  const closePasswordModal = () => {
+    setIsPasswordModalOpen(false)
+    setPasswordError('')
+    setPasswordStatus('')
+    setCurrentPassword('')
+    setNewPassword('')
+    setConfirmNewPassword('')
+  }
+
   return (
     <div className="app-layout settings-layout">
       <header className="app-header">
@@ -74,6 +150,11 @@ export default function SettingsPage({
               <span>email</span>
               <strong>{user?.email || 'unknown'}</strong>
             </div>
+            <div className="settings-kv">
+              <span>full name</span>
+              <strong>{user?.displayName || 'unknown'}</strong>
+            </div>
+            <button type="button" className="settings-password-trigger" onClick={openPasswordModal}>change password</button>
           </article>
 
           <article className="settings-card">
@@ -160,6 +241,43 @@ export default function SettingsPage({
         </section>
         </div>
       </main>
+
+      {isPasswordModalOpen && (
+        <div className="custom-modal-overlay">
+          <div className="custom-modal settings-password-modal">
+            <p style={{ marginBottom: '16px' }}>change password</p>
+            <form onSubmit={handlePasswordChange} className="input-group">
+              <input
+                type="password"
+                placeholder="current password"
+                value={currentPassword}
+                onChange={(event) => setCurrentPassword(event.target.value)}
+                autoComplete="current-password"
+              />
+              <input
+                type="password"
+                placeholder="new password"
+                value={newPassword}
+                onChange={(event) => setNewPassword(event.target.value)}
+                autoComplete="new-password"
+              />
+              <input
+                type="password"
+                placeholder="confirm new password"
+                value={confirmNewPassword}
+                onChange={(event) => setConfirmNewPassword(event.target.value)}
+                autoComplete="new-password"
+              />
+              {passwordError && <p className="settings-feedback settings-feedback-error">{passwordError}</p>}
+              {passwordStatus && <p className="settings-feedback settings-feedback-success">{passwordStatus}</p>}
+              <div className="modal-actions" style={{ marginTop: '4px' }}>
+                <button type="button" onClick={closePasswordModal}>cancel</button>
+                <button type="submit" className="btn-primary" disabled={isSavingPassword}>{isSavingPassword ? 'saving...' : 'save'}</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
