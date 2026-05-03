@@ -114,27 +114,33 @@ function Cart({ user, openFormSignal }) {
 
       {showForm && (
         <form onSubmit={addItem} style={{ maxWidth: '600px', margin: '0 auto 30px', padding: '20px', backgroundColor: 'var(--bg-primary)', border: '1px solid var(--border)', borderRadius: 'var(--radius)' }}>
-          <input 
-            type="text" 
-            placeholder="item name" 
-            value={title} 
-            onChange={(e) => setTitle(e.target.value)} 
-            className="mono-input"
-          />
-          <input 
-            type="url" 
-            placeholder="store link (optional)" 
-            value={url} 
-            onChange={(e) => setUrl(e.target.value)} 
-            className="mono-input"
-          />
-          <input 
-            type="text" 
-            placeholder="label" 
-            value={label} 
-            onChange={(e) => setLabel(e.target.value)} 
-            className="mono-input"
-          />
+          <div className="typing-caret-field" data-empty={!title}>
+            <input 
+              type="text" 
+              placeholder="item name" 
+              value={title} 
+              onChange={(e) => setTitle(e.target.value)} 
+              className="mono-input"
+            />
+          </div>
+          <div className="typing-caret-field" data-empty={!url}>
+            <input 
+              type="url" 
+              placeholder="store link (optional)" 
+              value={url} 
+              onChange={(e) => setUrl(e.target.value)} 
+              className="mono-input"
+            />
+          </div>
+          <div className="typing-caret-field" data-empty={!label}>
+            <input 
+              type="text" 
+              placeholder="label" 
+              value={label} 
+              onChange={(e) => setLabel(e.target.value)} 
+              className="mono-input"
+            />
+          </div>
           <button type="submit" className="submit-btn" style={{ width: '100%' }}>add_to_cart</button>
         </form>
       )}

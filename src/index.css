@@ -261,7 +261,7 @@ body {
   border: none;
 }
 
-input[type="text"], input[type="number"], textarea.meta-input {
+input[type="text"], input[type="email"], input[type="password"], input[type="url"], input[type="search"], input[type="tel"], input[type="number"], textarea.meta-input, textarea {
   width: 100%;
   background-color: transparent;
   border: none;
@@ -271,6 +271,14 @@ input[type="text"], input[type="number"], textarea.meta-input {
   font-family: inherit;
   font-size: 1rem;
   transition: 0s;
+  caret-color: var(--color-text-main);
+  caret-shape: underscore;
+}
+
+.typing-caret-field {
+  position: relative;
+  width: 100%;
+  color: inherit;
 }
 
 input::placeholder, textarea::placeholder {
@@ -746,7 +754,6 @@ button.danger:hover {
 }
 
 .terminal-input {
-  flex: 1;
   background: transparent;
   border: none;
   outline: none;
@@ -754,6 +761,17 @@ button.danger:hover {
   font-family: inherit;
   font-size: 0.95rem;
   text-transform: lowercase;
+  caret-color: #fff;
+  caret-shape: underscore;
+}
+
+.terminal-input-field {
+  flex: 1;
+  min-width: 0;
+}
+
+.terminal-input-field .terminal-input {
+  width: 100%;
 }
 
 .terminal-command-line,
@@ -976,6 +994,20 @@ button.danger:hover {
   color: #fff;
   border-bottom: none;
 }
+
+.custom-number-input-field {
+  width: 60px;
+  flex: 0 0 60px;
+}
+
+.custom-number-input-field .custom-number-input input {
+  width: 100%;
+}
+
+.custom-number-input-field:focus-within::after {
+  bottom: 0.42em;
+}
+
 .custom-number-input input:focus {
   outline: none;
   border-bottom: none;

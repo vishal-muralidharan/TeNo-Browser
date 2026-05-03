@@ -127,14 +127,16 @@ export default function LoginPage({ user, loadingAuth }) {
                   {authStatus}
                 </div>
               )}
-              <input
-                type="email"
-                placeholder="Enter your email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                style={{ padding: '0.75rem', borderRadius: '4px', border: '1px solid #444', background: '#222', color: 'white', fontFamily: 'inherit', fontSize: '1rem' }}
-              />
+              <div className="typing-caret-field" data-empty={!email}>
+                <input
+                  type="email"
+                  placeholder="Enter your email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  style={{ padding: '0.75rem', borderRadius: '4px', border: '1px solid #444', background: '#222', color: 'white', fontFamily: 'inherit', fontSize: '1rem' }}
+                />
+              </div>
             </div>
             <div style={{ position: 'absolute', bottom: '0', left: '0', right: '0', height: '80px', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
               <button type="submit" style={{ width: '100%', padding: '0.75rem', background: '#4285F4', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '1rem', fontFamily: 'inherit', fontWeight: '500' }}>
@@ -162,40 +164,48 @@ export default function LoginPage({ user, loadingAuth }) {
                 </div>
               )}
               {isRegistering && (
+                <div className="typing-caret-field" data-empty={!name}>
+                  <input
+                    type="text"
+                    placeholder="Full Name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    required={isRegistering}
+                    style={{ padding: '0.75rem', borderRadius: '4px', border: '1px solid #444', background: '#222', color: 'white', fontFamily: 'inherit', fontSize: '1rem' }}
+                  />
+                </div>
+              )}
+              <div className="typing-caret-field" data-empty={!email}>
                 <input
-                  type="text"
-                  placeholder="Full Name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  required={isRegistering}
+                  type="email"
+                  placeholder="Email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
                   style={{ padding: '0.75rem', borderRadius: '4px', border: '1px solid #444', background: '#222', color: 'white', fontFamily: 'inherit', fontSize: '1rem' }}
                 />
-              )}
-              <input
-                type="email"
-                placeholder="Email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                style={{ padding: '0.75rem', borderRadius: '4px', border: '1px solid #444', background: '#222', color: 'white', fontFamily: 'inherit', fontSize: '1rem' }}
-              />
-              <input
-                type="password"
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                style={{ padding: '0.75rem', borderRadius: '4px', border: '1px solid #444', background: '#222', color: 'white', fontFamily: 'inherit', fontSize: '1rem' }}
-              />
-              {isRegistering && (
+              </div>
+              <div className="typing-caret-field" data-empty={!password}>
                 <input
                   type="password"
-                  placeholder="Confirm Password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  required={isRegistering}
+                  placeholder="Password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
                   style={{ padding: '0.75rem', borderRadius: '4px', border: '1px solid #444', background: '#222', color: 'white', fontFamily: 'inherit', fontSize: '1rem' }}
                 />
+              </div>
+              {isRegistering && (
+                <div className="typing-caret-field" data-empty={!confirmPassword}>
+                  <input
+                    type="password"
+                    placeholder="Confirm Password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    required={isRegistering}
+                    style={{ padding: '0.75rem', borderRadius: '4px', border: '1px solid #444', background: '#222', color: 'white', fontFamily: 'inherit', fontSize: '1rem' }}
+                  />
+                </div>
               )}
               {!isRegistering && (
                 <p

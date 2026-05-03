@@ -494,20 +494,22 @@ export default function Terminal({
 
       <form className="terminal-input-row" onSubmit={handleSubmit}>
         <span className="terminal-prompt">{terminalPrompt}</span>
-        <input
-          ref={inputRef}
-          className="terminal-input"
-          value={input}
-          onChange={(event) => {
-            setInput(event.target.value)
-            setHistoryCursor(null)
-          }}
-          onKeyDown={handleKeyDown}
-          spellCheck="false"
-          autoComplete="off"
-          autoCapitalize="none"
-          autoCorrect="off"
-        />
+        <div className="typing-caret-field terminal-input-field" data-empty={!input}>
+          <input
+            ref={inputRef}
+            className="terminal-input"
+            value={input}
+            onChange={(event) => {
+              setInput(event.target.value)
+              setHistoryCursor(null)
+            }}
+            onKeyDown={handleKeyDown}
+            spellCheck="false"
+            autoComplete="off"
+            autoCapitalize="none"
+            autoCorrect="off"
+          />
+        </div>
       </form>
 
       <div className="terminal-output" ref={outputRef}>

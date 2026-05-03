@@ -27,22 +27,26 @@ function Login() {
       {error && <p style={{ color: 'var(--accent)', borderLeft: '2px solid var(--accent)', paddingLeft: '10px' }}>{error}</p>}
       
       <form onSubmit={handleEmailAuth}>
-        <input 
-          type="email" 
-          placeholder="email" 
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="mono-input"
-          required 
-        />
-        <input 
-          type="password" 
-          placeholder="password" 
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="mono-input"
-          required 
-        />
+        <div className="typing-caret-field" data-empty={!email}>
+          <input 
+            type="email" 
+            placeholder="email" 
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="mono-input"
+            required 
+          />
+        </div>
+        <div className="typing-caret-field" data-empty={!password}>
+          <input 
+            type="password" 
+            placeholder="password" 
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="mono-input"
+            required 
+          />
+        </div>
         <button type="submit" className="submit-btn" style={{ width: '100%', marginBottom: '15px' }}>
           {isRegistering ? 'register user' : 'initiate login'}
         </button>

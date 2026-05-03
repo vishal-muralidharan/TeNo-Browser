@@ -42,11 +42,13 @@ export default function Timer({
           <div className="timer-setup">
             <div className="custom-number-input">
               <button type="button" className="arrow-btn" onClick={decrementMin}><ChevronDown size={18} /></button>
-              <input
-                type="number"
-                value={Math.max(timerInputMinutes, 0)}
-                onChange={(event) => setTimerInputMinutes(parseInt(event.target.value, 10) || 0)}
-              />
+              <div className="typing-caret-field typing-caret-field--centered custom-number-input-field" data-empty={Number(timerInputMinutes) === 0}>
+                <input
+                  type="number"
+                  value={Math.max(timerInputMinutes, 0)}
+                  onChange={(event) => setTimerInputMinutes(parseInt(event.target.value, 10) || 0)}
+                />
+              </div>
               <button type="button" className="arrow-btn" onClick={incrementMin}><ChevronUp size={18} /></button>
             </div>
             <span className="min-label">minutes</span>

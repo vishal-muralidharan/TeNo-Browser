@@ -507,32 +507,40 @@ export default function LinkStorer({ collectionName = 'saved_links', title = 'Sa
 
       <div className={`collapsible-form ${isFormOpen ? 'open' : ''}`}>
         <form className="input-group" onSubmit={handleSubmit}>
-        <input
-          ref={nicknameInputRef}
-          type="text"
-          placeholder="Add Nickname"
-          value={nickname}
-          onChange={(e) => setNickname(e.target.value)}
-        />
-        <input
-          type="text"
-          placeholder="Enter URL"
-          value={url}
-          onChange={(e) => setUrl(e.target.value)}
-        />
-        <input
-          type="text"
-          placeholder="Label"
-          value={label}
-          onChange={(e) => setLabel(e.target.value)}
-        />
-        <textarea
-          placeholder="Description"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          rows={2}
-          className="meta-input"
-        />
+        <div className="typing-caret-field" data-empty={!nickname}>
+          <input
+            ref={nicknameInputRef}
+            type="text"
+            placeholder="Add Nickname"
+            value={nickname}
+            onChange={(e) => setNickname(e.target.value)}
+          />
+        </div>
+        <div className="typing-caret-field" data-empty={!url}>
+          <input
+            type="text"
+            placeholder="Enter URL"
+            value={url}
+            onChange={(e) => setUrl(e.target.value)}
+          />
+        </div>
+        <div className="typing-caret-field" data-empty={!label}>
+          <input
+            type="text"
+            placeholder="Label"
+            value={label}
+            onChange={(e) => setLabel(e.target.value)}
+          />
+        </div>
+        <div className="typing-caret-field" data-empty={!description}>
+          <textarea
+            placeholder="Description"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            rows={2}
+            className="meta-input"
+          />
+        </div>
         <button type="submit" disabled={isSubmitting || !url || !nickname}>Save</button>
         </form>
       </div>
@@ -616,31 +624,39 @@ export default function LinkStorer({ collectionName = 'saved_links', title = 'Sa
           <div className="custom-modal">
             <p style={{marginBottom: "16px"}}>Edit Item</p>
             <form onSubmit={handleEditSave} className="input-group">
-               <input 
-                 type="text" 
-                 value={editingItem.nickname} 
-                 onChange={e => setEditingItem({...editingItem, nickname: e.target.value})}
-                 placeholder="Nickname"
-               />
-               <input 
-                 type="text" 
-                 value={editingItem.url} 
-                 onChange={e => setEditingItem({...editingItem, url: e.target.value})}
-                 placeholder="URL"
-               />
-               <input 
-                 type="text" 
-                 value={editingItem.label} 
-                 onChange={e => setEditingItem({...editingItem, label: e.target.value})}
-                 placeholder="Label"
-               />
-               <textarea 
-                 value={editingItem.description}
-                 onChange={e => setEditingItem({...editingItem, description: e.target.value})}
-                 rows={2}
-                 className="meta-input"
-                 placeholder="Description..."
-               />
+               <div className="typing-caret-field" data-empty={!editingItem.nickname}>
+                 <input 
+                   type="text" 
+                   value={editingItem.nickname} 
+                   onChange={e => setEditingItem({...editingItem, nickname: e.target.value})}
+                   placeholder="Nickname"
+                 />
+               </div>
+               <div className="typing-caret-field" data-empty={!editingItem.url}>
+                 <input 
+                   type="text" 
+                   value={editingItem.url} 
+                   onChange={e => setEditingItem({...editingItem, url: e.target.value})}
+                   placeholder="URL"
+                 />
+               </div>
+               <div className="typing-caret-field" data-empty={!editingItem.label}>
+                 <input 
+                   type="text" 
+                   value={editingItem.label} 
+                   onChange={e => setEditingItem({...editingItem, label: e.target.value})}
+                   placeholder="Label"
+                 />
+               </div>
+               <div className="typing-caret-field" data-empty={!editingItem.description}>
+                 <textarea 
+                   value={editingItem.description}
+                   onChange={e => setEditingItem({...editingItem, description: e.target.value})}
+                   rows={2}
+                   className="meta-input"
+                   placeholder="Description..."
+                 />
+               </div>
                <div className="modal-actions" style={{marginTop: "8px"}}>
                  <button type="button" onClick={() => setEditingItem(null)}>Cancel</button>
                  <button type="submit" className="btn-primary" disabled={!editingItem.nickname.trim()}>Save</button>

@@ -159,18 +159,22 @@ export default function Reminders({ user }) {
   return (
     <div className="tab-pane">
       <form className="input-group" onSubmit={handleSubmit}>
-        <input
-          type="text"
-          placeholder="Add new reminder here"
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-        />
-        <input
-          type="text"
-          placeholder="Label"
-          value={label}
-          onChange={(e) => setLabel(e.target.value)}
-        />
+        <div className="typing-caret-field" data-empty={!text}>
+          <input
+            type="text"
+            placeholder="Add new reminder here"
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+          />
+        </div>
+        <div className="typing-caret-field" data-empty={!label}>
+          <input
+            type="text"
+            placeholder="Label"
+            value={label}
+            onChange={(e) => setLabel(e.target.value)}
+          />
+        </div>
         <button type="submit" disabled={isSubmitting || !text.trim()}>Add</button>
       </form>
 
@@ -251,17 +255,21 @@ export default function Reminders({ user }) {
           <div className="custom-modal">
             <p style={{marginBottom: "16px"}}>Edit Reminder</p>
             <form onSubmit={handleEditSave} className="input-group">
-               <input 
-                 type="text" 
-                 value={editingReminder.text} 
-                 onChange={e => setEditingReminder({...editingReminder, text: e.target.value})}
-               />
-               <input 
-                 type="text" 
-                 value={editingReminder.label} 
-                 onChange={e => setEditingReminder({...editingReminder, label: e.target.value})}
-                 placeholder="Label"
-               />
+               <div className="typing-caret-field" data-empty={!editingReminder.text}>
+                 <input 
+                   type="text" 
+                   value={editingReminder.text} 
+                   onChange={e => setEditingReminder({...editingReminder, text: e.target.value})}
+                 />
+               </div>
+               <div className="typing-caret-field" data-empty={!editingReminder.label}>
+                 <input 
+                   type="text" 
+                   value={editingReminder.label} 
+                   onChange={e => setEditingReminder({...editingReminder, label: e.target.value})}
+                   placeholder="Label"
+                 />
+               </div>
                <div className="modal-actions" style={{marginTop: "8px"}}>
                  <button type="button" onClick={() => setEditingReminder(null)}>Cancel</button>
                  <button type="submit" className="btn-primary" disabled={!editingReminder.text.trim()}>Save</button>
