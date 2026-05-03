@@ -40,6 +40,13 @@ export default function SettingsPage({
   }, new Map())
 
   const labelStatList = [...labelStats.values()].sort((a, b) => b.clickCount - a.clickCount || a.label.localeCompare(b.label))
+  const sortedSavedLinks = [...savedLinks].sort((a, b) => {
+    const clickA = Number(a.clickCount || 0)
+    const clickB = Number(b.clickCount || 0)
+    if (clickA !== clickB) return clickB - clickA
+
+    return getDisplayName(a).localeCompare(getDisplayName(b))
+  })
   const topClickedLink = [...allItems].sort((a, b) => getItemClickCount(b) - getItemClickCount(a))[0] || null
   const topClickedLabel = labelStatList[0] || null
   const totalClicks = allItems.reduce((sum, item) => sum + getItemClickCount(item), 0)
@@ -111,12 +118,12 @@ export default function SettingsPage({
 
           <div className="settings-list-group">
             <h4>saved links</h4>
-            {savedLinks.length === 0 ? (
+            {sortedSavedLinks.length === 0 ? (
               <p className="settings-empty">no saved links yet.</p>
             ) : (
-              savedLinks.map((item) => (
+              sortedSavedLinks.map((item) => (
                 <div key={item.id} className="settings-list-row">
-                  <span>{getDisplayName(item)}</span>
+                  <span>{`${getDisplayName(item)}${item.label ? ` (${item.label})` : ''}`}</span>
                   <strong>{getItemClickCount(item)}</strong>
                 </div>
               ))
