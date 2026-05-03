@@ -537,7 +537,7 @@ export default function LinkStorer({ collectionName = 'saved_links', title = 'Sa
             placeholder="Description"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            rows={2}
+            rows={1}
             className="meta-input"
           />
         </div>
@@ -654,7 +654,7 @@ export default function LinkStorer({ collectionName = 'saved_links', title = 'Sa
                    onChange={e => setEditingItem({...editingItem, description: e.target.value})}
                    rows={2}
                    className="meta-input"
-                   placeholder="Description..."
+                   placeholder="Description"
                  />
                </div>
                <div className="modal-actions" style={{marginTop: "8px"}}>

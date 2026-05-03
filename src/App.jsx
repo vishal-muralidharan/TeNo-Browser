@@ -5,6 +5,7 @@ import { collection, query, getDocs, writeBatch, doc, onSnapshot, addDoc, delete
 import { auth, db } from './firebase'
 import LoginPage from './pages/LoginPage'
 import DashboardPage from './pages/DashboardPage'
+import { setupTypingCaret } from '../sm/typingCaret'
 
 const TAB_INDEX = {
   links: 0,
@@ -72,6 +73,8 @@ function App() {
 
     return unsubscribe
   }, [])
+
+  useEffect(() => setupTypingCaret(), [])
 
   useEffect(() => {
     if (!user) {

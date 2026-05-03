@@ -134,7 +134,7 @@ export default function LoginPage({ user, loadingAuth }) {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  style={{ padding: '0.75rem', borderRadius: '4px', border: '1px solid #444', background: '#222', color: 'white', fontFamily: 'inherit', fontSize: '1rem' }}
+                  style={{ padding: '0.75rem', borderRadius: '4px', background: '#222', color: 'white', fontFamily: 'inherit', fontSize: '1rem' }}
                 />
               </div>
             </div>
@@ -171,7 +171,7 @@ export default function LoginPage({ user, loadingAuth }) {
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     required={isRegistering}
-                    style={{ padding: '0.75rem', borderRadius: '4px', border: '1px solid #444', background: '#222', color: 'white', fontFamily: 'inherit', fontSize: '1rem' }}
+                    style={{ padding: '0.75rem', borderRadius: '4px', background: '#222', color: 'white', fontFamily: 'inherit', fontSize: '1rem' }}
                   />
                 </div>
               )}
@@ -182,7 +182,7 @@ export default function LoginPage({ user, loadingAuth }) {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  style={{ padding: '0.75rem', borderRadius: '4px', border: '1px solid #444', background: '#222', color: 'white', fontFamily: 'inherit', fontSize: '1rem' }}
+                  style={{ padding: '0.75rem', borderRadius: '4px', background: '#222', color: 'white', fontFamily: 'inherit', fontSize: '1rem' }}
                 />
               </div>
               <div className="typing-caret-field" data-empty={!password}>
@@ -192,7 +192,7 @@ export default function LoginPage({ user, loadingAuth }) {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  style={{ padding: '0.75rem', borderRadius: '4px', border: '1px solid #444', background: '#222', color: 'white', fontFamily: 'inherit', fontSize: '1rem' }}
+                  style={{ padding: '0.75rem', borderRadius: '4px', background: '#222', color: 'white', fontFamily: 'inherit', fontSize: '1rem' }}
                 />
               </div>
               {isRegistering && (
@@ -203,7 +203,7 @@ export default function LoginPage({ user, loadingAuth }) {
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     required={isRegistering}
-                    style={{ padding: '0.75rem', borderRadius: '4px', border: '1px solid #444', background: '#222', color: 'white', fontFamily: 'inherit', fontSize: '1rem' }}
+                    style={{ padding: '0.75rem', borderRadius: '4px', background: '#222', color: 'white', fontFamily: 'inherit', fontSize: '1rem' }}
                   />
                 </div>
               )}

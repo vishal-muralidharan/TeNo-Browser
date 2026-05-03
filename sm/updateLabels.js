@@ -56,7 +56,7 @@ const addListener = `
 content = content.replace(effectRegex, addListener);
 
 content = content.replace(
-  /unsub\(\);\s*if \(storageListener && typeof chrome !== 'undefined' && chrome\.storage && chrome\.storage\.onChanged\) {/,
+  /unsub\(\);\s*if \(storageListener && typeof chrome !== 'undefined' && chrome\.storage && chrome\.storage\.onChanged\) {/, 
   `unsub();
       unsubSettings();
       if (storageListener && typeof chrome !== 'undefined' && chrome.storage && chrome.storage.onChanged) {`

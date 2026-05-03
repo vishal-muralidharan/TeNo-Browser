@@ -261,24 +261,63 @@ body {
   border: none;
 }
 
-input[type="text"], input[type="email"], input[type="password"], input[type="url"], input[type="search"], input[type="tel"], input[type="number"], textarea.meta-input, textarea {
+input[type="text"], input[type="email"], input[type="password"], input[type="url"], input[type="search"], input[type="tel"], input[type="number"], input.mono-input, textarea.meta-input, textarea {
   width: 100%;
   background-color: transparent;
   border: none;
-  border-bottom: 1px dashed var(--color-border);
+  border-bottom: 1px solid var(--color-border);
   color: var(--color-text-main);
-  padding: 4px 0;
+  padding: 4px 0 6px;
   font-family: inherit;
   font-size: 1rem;
   transition: 0s;
   caret-color: var(--color-text-main);
-  caret-shape: underscore;
+  caret-width: 2px;
+}
+
+input, textarea {
+  caret-color: var(--color-text-main);
 }
 
 .typing-caret-field {
   position: relative;
   width: 100%;
   color: inherit;
+}
+
+.typing-caret-field__mirror {
+  position: absolute;
+  inset: 0;
+  visibility: hidden;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.typing-caret-field--show-caret input,
+.typing-caret-field--show-caret textarea {
+  caret-color: transparent;
+}
+
+.typing-caret-field--show-caret::after {
+  content: '_';
+  position: absolute;
+  left: var(--typing-caret-left, 0px);
+  top: var(--typing-caret-top, 0px);
+  color: currentColor;
+  animation: underscore-blink 1s step-end infinite;
+  pointer-events: none;
+}
+
+@keyframes underscore-blink {
+  0%,
+  49% {
+    opacity: 1;
+  }
+
+  50%,
+  100% {
+    opacity: 0;
+  }
 }
 
 input::placeholder, textarea::placeholder {
@@ -288,7 +327,7 @@ input::placeholder, textarea::placeholder {
 
 input:focus, textarea:focus {
   outline: none;
-  border-bottom: 2px solid #fff;
+  border-bottom-color: var(--color-text-main);
 }
 
 textarea.meta-input {
@@ -756,13 +795,19 @@ button.danger:hover {
 .terminal-input {
   background: transparent;
   border: none;
+  border-bottom: 1px solid #333;
   outline: none;
   color: #fff;
   font-family: inherit;
   font-size: 0.95rem;
   text-transform: lowercase;
   caret-color: #fff;
-  caret-shape: underscore;
+  caret-width: 2px;
+}
+
+.terminal-input:focus {
+  outline: none;
+  border-bottom-color: #fff;
 }
 
 .terminal-input-field {
@@ -1002,15 +1047,14 @@ button.danger:hover {
 
 .custom-number-input-field .custom-number-input input {
   width: 100%;
-}
-
-.custom-number-input-field:focus-within::after {
-  bottom: 0.42em;
+  border-bottom: 1px solid #333;
+  caret-color: #fff;
+  caret-width: 2px;
 }
 
 .custom-number-input input:focus {
   outline: none;
-  border-bottom: none;
+  border-bottom-color: #fff;
 }
 .custom-number-input input::-webkit-outer-spin-button,
 .custom-number-input input::-webkit-inner-spin-button {
