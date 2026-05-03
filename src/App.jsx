@@ -87,7 +87,8 @@ function App() {
     const settingsRef = doc(db, 'users', user.uid, 'settings', 'ui')
     const unsubSettings = onSnapshot(settingsRef, (snapshot) => {
       const nextValue = Number(snapshot.data()?.favoritesRowCount)
-      setFavoritesRowCount(Number.isFinite(nextValue) && nextValue > 0 ? nextValue : 2)
+      const clampedValue = Number.isFinite(nextValue) ? Math.max(1, Math.min(3, Math.floor(nextValue))) : 2
+      setFavoritesRowCount(clampedValue)
     })
 
     return unsubSettings
@@ -210,7 +211,7 @@ function App() {
   }
 
   const updateFavoritesRowCount = async (nextValue) => {
-    const parsedValue = Math.max(1, Math.min(8, Number(nextValue) || 2))
+    const parsedValue = Math.max(1, Math.min(3, Number(nextValue) || 2))
     setFavoritesRowCount(parsedValue)
 
     if (!user) return { ok: false, message: 'no active user.' }

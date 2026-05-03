@@ -72,16 +72,16 @@ export default function SettingsPage({
           <article className="settings-card">
             <h3>layout</h3>
             <div className="settings-kv settings-kv-stack">
-              <span>rows below favourites</span>
+              <span>sections per row below favourites</span>
               <div className="settings-inline-row">
                 <input
                   type="number"
                   min="1"
-                  max="8"
+                  max="3"
                   value={favoritesRowCount}
                   onChange={(event) => onFavoritesRowCountChange?.(event.target.value)}
                 />
-                <small>applies to the favourites grid.</small>
+                <small>allowed values: 1, 2, or 3.</small>
               </div>
             </div>
           </article>
