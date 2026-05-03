@@ -554,7 +554,7 @@ export default function LinkStorer({ collectionName = 'saved_links', title = 'Sa
           <h3 className="section-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span>{section.title}</span>
           </h3>
-          {renderLinkCells(section.items, 0, true, section.key, 'favorites-grid', { '--favorites-row-count': favoritesRowCount })}
+          {renderLinkCells(section.items, 0, true, section.key, 'favorites-grid')}
         </section>
       ))}
 
@@ -592,7 +592,7 @@ export default function LinkStorer({ collectionName = 'saved_links', title = 'Sa
                   </button>
                 </div>
               </h3>
-              {renderLinkCells(section.items, 0, false, section.key, 'label-grid-three')}
+              {renderLinkCells(section.items, 0, false, section.key, 'label-grid-three', { '--below-favorites-row-count': favoritesRowCount })}
             </section>
           )
         })}
@@ -604,7 +604,7 @@ export default function LinkStorer({ collectionName = 'saved_links', title = 'Sa
             <span>{section.title}</span>
           </h3>
           <div className="label-section">
-            {renderLinkCells(section.items, 0, false, section.key)}
+            {renderLinkCells(section.items, 0, false, section.key, 'label-grid-three', { '--below-favorites-row-count': favoritesRowCount })}
           </div>
         </section>
       ))}
