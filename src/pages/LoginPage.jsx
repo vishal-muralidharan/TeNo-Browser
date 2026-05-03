@@ -43,6 +43,7 @@ export default function LoginPage({ user, loadingAuth }) {
   const [isResettingPassword, setIsResettingPassword] = useState(false)
   const [authError, setAuthError] = useState('')
   const [authStatus, setAuthStatus] = useState('')
+  const showBackToLogin = isRegistering || isResettingPassword
 
   if (loadingAuth) {
     return <div style={{ padding: '2rem', textAlign: 'center', color: '#666' }}>Loading...</div>
@@ -108,7 +109,30 @@ export default function LoginPage({ user, loadingAuth }) {
   }
 
   return (
-    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', flex: 1, padding: '1rem', minHeight: 'calc(100vh - 80px)' }}>
+    <div className="auth-page">
+      <header className="app-header">
+        <div className="brand">
+          <h1>teno</h1>
+          <div className="topbar-actions">
+            {showBackToLogin && (
+              <button
+                type="button"
+                className="topbar-action-btn"
+                onClick={() => {
+                  setIsRegistering(false)
+                  setIsResettingPassword(false)
+                  setAuthError('')
+                  setAuthStatus('')
+                }}
+              >
+                back
+              </button>
+            )}
+          </div>
+        </div>
+      </header>
+
+      <div className="auth-main">
       <div className="auth-container" style={{ padding: '2rem', width: '500px', height: '500px', background: '#0a0a0a', border: '1px solid #333', borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.5)', position: 'relative' }}>
         <div style={{ position: 'absolute', top: '2rem', left: '2rem', right: '2rem', height: '80px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
           <h2 style={{ fontSize: '1.7rem', marginBottom: '0.4rem', textAlign: 'center', margin: '0' }}>Welcome to TeNo</h2>
@@ -236,6 +260,7 @@ export default function LoginPage({ user, loadingAuth }) {
             </div>
           </form>
         )}
+      </div>
       </div>
     </div>
   )

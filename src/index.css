@@ -49,23 +49,63 @@ body {
 /* Header */
 .app-header {
   background-color: var(--color-bg-main);
-  padding: 8px 12px 12px;
+  padding: 14px 16px 16px;
   border-bottom: 1px solid #fff;
   display: flex;
   align-items: center;
+  min-height: 74px;
 }
 
 .brand {
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  width: 100%;
   gap: 12px;
 }
 
 .brand h1 {
-  font-size: 1.25rem;
+  font-size: 1.5rem;
   font-weight: 700;
   color: var(--color-text-main);
   letter-spacing: 1px;
+}
+
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.topbar-action-btn {
+  background: transparent;
+  border: 1px solid #444;
+  color: #888;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.92rem;
+}
+
+.topbar-action-btn:hover {
+  color: #000;
+  background: #fff;
+  border-color: #fff;
+}
+
+.auth-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.auth-main {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex: 1;
+  padding: 1rem;
 }
 
 .brand h1::before {
@@ -970,8 +1010,12 @@ button.danger:hover {
 }
 
 /* Settings Page */
+.settings-layout {
+  height: 100vh;
+}
+
 .settings-page {
-  min-height: 100%;
+  flex: 1;
   padding: 16px;
   overflow-y: auto;
 }
@@ -982,15 +1026,7 @@ button.danger:hover {
   display: flex;
   flex-direction: column;
   gap: 16px;
-}
-
-.settings-header {
-  display: flex;
-  justify-content: space-between;
-  gap: 16px;
-  align-items: flex-start;
-  padding-bottom: 12px;
-  border-bottom: 1px solid var(--color-border);
+  padding-bottom: 16px;
 }
 
 .settings-kicker {
@@ -1000,28 +1036,16 @@ button.danger:hover {
   margin-bottom: 4px;
 }
 
-.settings-header h2,
 .settings-card h3,
 .settings-list-group h4 {
   text-transform: lowercase;
 }
 
-.settings-header-actions {
-  display: flex;
-  gap: 8px;
-}
-
-.settings-header-actions button,
 .settings-inline-row input {
   border: 1px solid var(--color-border);
   background: transparent;
   color: var(--color-text-main);
   font: inherit;
-}
-
-.settings-header-actions button {
-  padding: 6px 10px;
-  cursor: pointer;
 }
 
 .settings-grid {
@@ -1121,10 +1145,6 @@ button.danger:hover {
   .settings-grid,
   .settings-stats-grid {
     grid-template-columns: 1fr;
-  }
-
-  .settings-header {
-    flex-direction: column;
   }
 }
 

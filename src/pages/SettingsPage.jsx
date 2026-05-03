@@ -43,31 +43,29 @@ export default function SettingsPage({
   const topClickedLink = [...allItems].sort((a, b) => getItemClickCount(b) - getItemClickCount(a))[0] || null
   const topClickedLabel = labelStatList[0] || null
   const totalClicks = allItems.reduce((sum, item) => sum + getItemClickCount(item), 0)
+  const topClickedLinkCount = topClickedLink ? getItemClickCount(topClickedLink) : 0
+  const topClickedLabelCount = topClickedLabel ? topClickedLabel.clickCount : 0
 
   return (
-    <div className="settings-page">
-      <div className="settings-shell">
-        <header className="settings-header">
-          <div>
-            <p className="settings-kicker">system settings</p>
-            <h2>settings</h2>
+    <div className="app-layout settings-layout">
+      <header className="app-header">
+        <div className="brand">
+          <h1>teno</h1>
+          <div className="topbar-actions">
+            <button type="button" className="topbar-action-btn" onClick={() => navigate('/app')}>back</button>
+            <button type="button" className="topbar-action-btn" onClick={onLogout}>logout</button>
           </div>
-          <div className="settings-header-actions">
-            <button type="button" onClick={() => navigate('/app')}>back</button>
-            <button type="button" onClick={onLogout}>logout</button>
-          </div>
-        </header>
+        </div>
+      </header>
 
+      <main className="settings-page">
+        <div className="settings-shell">
         <section className="settings-grid">
           <article className="settings-card">
             <h3>account</h3>
             <div className="settings-kv">
               <span>email</span>
               <strong>{user?.email || 'unknown'}</strong>
-            </div>
-            <div className="settings-kv">
-              <span>user id</span>
-              <strong>{user?.uid || 'unknown'}</strong>
             </div>
           </article>
 
@@ -102,12 +100,12 @@ export default function SettingsPage({
           <h3>click stats</h3>
           <div className="settings-stats-grid">
             <div className="settings-stat-box">
-              <span>max clicked link</span>
-              <strong>{topClickedLink ? `${getDisplayName(topClickedLink)} (${getItemClickCount(topClickedLink)})` : 'no clicks yet'}</strong>
+              <span>max clicked link:</span>{' '}
+              <strong>{topClickedLinkCount > 0 ? `${getDisplayName(topClickedLink)} (${topClickedLinkCount})` : 'none'}</strong>
             </div>
             <div className="settings-stat-box">
-              <span>max clicked label</span>
-              <strong>{topClickedLabel ? `${topClickedLabel.label} (${topClickedLabel.clickCount})` : 'no labels yet'}</strong>
+              <span>max clicked label:</span>{' '}
+              <strong>{topClickedLabelCount > 0 ? `${topClickedLabel.label} (${topClickedLabelCount})` : 'none'}</strong>
             </div>
           </div>
 
@@ -153,7 +151,8 @@ export default function SettingsPage({
             )}
           </div>
         </section>
-      </div>
+        </div>
+      </main>
     </div>
   )
 }

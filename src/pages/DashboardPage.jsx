@@ -101,13 +101,13 @@ export default function DashboardPage({
       style={{ outline: 'none', '--terminal-active-height': `${terminalHeight}px` }}
     >
       <header className="app-header">
-        <div className="brand" style={{ display: 'flex', justifyContent: 'space-between', width: '100%', paddingRight: '1rem', alignItems: 'center' }}>
+        <div className="brand">
           <h1>teno</h1>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.8rem' }}>
-            <button onClick={() => navigate('/settings')} style={{ background: 'transparent', border: '1px solid #444', color: '#888', padding: '0.2rem 0.5rem', borderRadius: '4px', cursor: 'pointer', fontSize: 'inherit' }}>
+          <div className="topbar-actions">
+            <button type="button" className="topbar-action-btn" onClick={() => navigate('/settings')}>
               settings
             </button>
-            <button onClick={() => setShowLogoutConfirm(true)} style={{ background: 'transparent', border: '1px solid #444', color: '#888', padding: '0.2rem 0.5rem', borderRadius: '4px', cursor: 'pointer', fontSize: 'inherit' }}>
+            <button type="button" className="topbar-action-btn" onClick={() => setShowLogoutConfirm(true)}>
               logout
             </button>
           </div>
