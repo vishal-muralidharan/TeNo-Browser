@@ -390,6 +390,11 @@ function App() {
 
   return (
     <BrowserRouter>
+      {systemFlags.globalMessage && (
+        <div style={{ background: '#fff', color: '#000', padding: '12px', textAlign: 'center', fontWeight: 'bold' }}>
+          [ broadcast ] {systemFlags.globalMessage}
+        </div>
+      )}
       <Routes>
         <Route path="/" element={<Navigate to={user ? '/app' : '/login'} replace />} />
         <Route path="/login" element={<LoginPage user={user} loadingAuth={loadingAuth} />} />
