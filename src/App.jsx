@@ -64,6 +64,19 @@ function App() {
   const [timerInputMinutes, setTimerInputMinutes] = useState(0)
   const [timerDisplayMs, setTimerDisplayMs] = useState(0)
 
+  const [systemFlags, setSystemFlags] = useState({})
+  const [adminLoginVisible, setAdminLoginVisible] = useState(false)
+  const [isAdminView, setIsAdminView] = useState(false)
+
+  useEffect(() => {
+    const unsubFlags = onSnapshot(doc(db, 'system_config', 'feature_flags'), (snapshot) => {
+      if (snapshot.exists()) {
+        setSystemFlags(snapshot.data() || {})
+      }
+    })
+    return unsubFlags
+  }, [])
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser)
@@ -190,8 +203,18 @@ function App() {
   const handleLogout = async () => {
     try {
       await signOut(auth)
+      setIsAdminView(false)
     } catch (error) {
       console.error(error)
+    }
+  }
+
+  const handleAdminAuth = (password) => {
+    if (password === 'admin') {
+      setAdminLoginVisible(false)
+      setIsAdminView(true)
+    } else {
+      alert('Invalid admin credentials')
     }
   }
 
@@ -395,6 +418,8 @@ function App() {
                 deleteReminderByIndex={deleteReminderByIndex}
                 deleteAllReminders={deleteAllReminders}
                 recordLinkOpen={recordLinkOpen}
+                systemFlags={systemFlags}
+                onAdminTrigger={() => setAdminLoginVisible(true)}
                 timerApi={{
                   timerState,
                   timerMode,
@@ -436,6 +461,39 @@ function App() {
         <Route path="/admin" element={<AdminDashboardPage />} />
         <Route path="*" element={<Navigate to={user ? '/app' : '/login'} replace />} />
       </Routes>
+
+      {adminLoginVisible && (
+        <div className="custom-modal-overlay">
+          <div className="custom-modal">
+            <p style={{ marginBottom: '16px' }}>admin authorization</p>
+            <input 
+               type="password" 
+               id="admin-pwd"
+               className="admin-pw-input"
+               placeholder="password..." 
+               onKeyDown={(e) => { if(e.key === 'Enter') {
+                 if (e.target.value === 'admin') {
+                   setAdminLoginVisible(false)
+                   window.location.href = '/admin'
+                 } else {
+                   alert('Invalid admin credentials')
+                 }
+               }}}
+               autoFocus 
+            />
+            <div className="modal-actions">
+              <button type="button" onClick={() => setAdminLoginVisible(false)}>abort</button>
+              <button type="button" className="btn-primary" onClick={() => {
+                const v = document.getElementById('admin-pwd')?.value;
+                if (v === 'admin') {
+                  setAdminLoginVisible(false)
+                  window.location.href = '/admin'
+                } else alert('Invalid admin credentials')
+              }}>enter</button>
+            </div>
+          </div>
+        </div>
+      )}
     </BrowserRouter>
   )
 }

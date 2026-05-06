@@ -26,18 +26,33 @@ export default function DashboardPage({
   deleteReminderByIndex,
   deleteAllReminders,
   recordLinkOpen,
+  systemFlags,
+  onAdminTrigger,
   timerApi,
 }) {
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
   const [terminalHeight, setTerminalHeight] = useState(280)
+  const [logoClicks, setLogoClicks] = useState(0)
   const appContainerRef = useRef(null)
   const navigate = useNavigate()
 
+  useEffect(() => {
+    if (logoClicks >= 5) {
+      setLogoClicks(0)
+      if (onAdminTrigger) onAdminTrigger()
+    }
+  }, [logoClicks, onAdminTrigger])
+
+  const handleLogoClick = () => {
+    setLogoClicks(c => c + 1)
+    setTimeout(() => setLogoClicks(0), 1000)
+  }
+
   const tabs = [
-    { id: 'links', label: 'Links', component: <LinkStorer collectionName="saved_links" title="Saved Links" user={user} openFormSignal={linksFormToken} favoritesRowCount={favoritesRowCount} onLinkOpen={recordLinkOpen} /> },
-    { id: 'cart', label: 'Cart', component: <LinkStorer collectionName="cart_items" title="Cart" user={user} openFormSignal={cartFormToken} onLinkOpen={recordLinkOpen} /> },
-    { id: 'reminders', label: 'Reminders', component: <Reminders user={user} /> },
-    { id: 'timer', label: 'Timer', component: <Timer {...timerApi} /> },
+    { id: 'links', label: 'Links', component: systemFlags?.links === false ? <div className="disabled-tab">[ module disabled by administrator ]</div> : <LinkStorer collectionName="saved_links" title="Saved Links" user={user} openFormSignal={linksFormToken} favoritesRowCount={favoritesRowCount} onLinkOpen={recordLinkOpen} /> },
+    { id: 'cart', label: 'Cart', component: systemFlags?.cart === false ? <div className="disabled-tab">[ module disabled by administrator ]</div> : <LinkStorer collectionName="cart_items" title="Cart" user={user} openFormSignal={cartFormToken} onLinkOpen={recordLinkOpen} /> },
+    { id: 'reminders', label: 'Reminders', component: systemFlags?.reminders === false ? <div className="disabled-tab">[ module disabled by administrator ]</div> : <Reminders user={user} /> },
+    { id: 'timer', label: 'Timer', component: systemFlags?.timer === false ? <div className="disabled-tab">[ module disabled by administrator ]</div> : <Timer {...timerApi} /> },
   ]
 
   const handleTabSwitch = (index) => {
@@ -102,7 +117,7 @@ export default function DashboardPage({
     >
       <header className="app-header">
         <div className="brand">
-          <h1>teno</h1>
+          <h1 onClick={handleLogoClick} style={{ cursor: 'pointer', userSelect: 'none' }}>teno</h1>
           <div className="topbar-actions">
             <button type="button" className="topbar-action-btn" onClick={() => navigate('/settings')}>
               settings
