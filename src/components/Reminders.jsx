@@ -22,14 +22,14 @@ export default function Reminders({ user }) {
       const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       
       data.sort((a, b) => {
-        const timeA = a.createdAt ? a.createdAt.toMillis() : 0;
-        const timeB = b.createdAt ? b.createdAt.toMillis() : 0;
-        return timeA - timeB; // Ascending logic as requested for LinkStorer apply here? Or descending? Original was desc. Let's do descending: timeA - timeB -> ascending, wait. Original was desc, let's keep desc: timeB - timeA.
+        const timeA = a.createdAt?.toMillis?.() ?? (a.createdAt?.seconds ? a.createdAt.seconds * 1000 : 0);
+        const timeB = b.createdAt?.toMillis?.() ?? (b.createdAt?.seconds ? b.createdAt.seconds * 1000 : 0);
+        return timeA - timeB; 
       });
       data.sort((a,b) => {
-        const timeA = a.createdAt ? a.createdAt.toMillis() : 0;
-        const timeB = b.createdAt ? b.createdAt.toMillis() : 0;
-         return timeB - timeA;
+        const timeA = a.createdAt?.toMillis?.() ?? (a.createdAt?.seconds ? a.createdAt.seconds * 1000 : 0);
+        const timeB = b.createdAt?.toMillis?.() ?? (b.createdAt?.seconds ? b.createdAt.seconds * 1000 : 0);
+         return timeA - timeB; // changed to Ascending as per original logic
       });
       setReminders(data);
     });
@@ -122,8 +122,8 @@ export default function Reminders({ user }) {
     .map((section) => ({
       ...section,
       items: [...section.items].sort((a, b) => {
-        const timeA = a.createdAt ? a.createdAt.toMillis() : 0;
-        const timeB = b.createdAt ? b.createdAt.toMillis() : 0;
+        const timeA = a.createdAt?.toMillis?.() ?? (a.createdAt?.seconds ? a.createdAt.seconds * 1000 : 0);
+        const timeB = b.createdAt?.toMillis?.() ?? (b.createdAt?.seconds ? b.createdAt.seconds * 1000 : 0);
         return timeA - timeB;
       }),
     }))

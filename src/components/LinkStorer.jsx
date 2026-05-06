@@ -79,8 +79,8 @@ export default function LinkStorer({ collectionName = 'saved_links', title = 'Sa
       data.sort((a, b) => {
         if (a.isFavorite && !b.isFavorite) return -1;
         if (!a.isFavorite && b.isFavorite) return 1;
-        const timeA = a.createdAt ? a.createdAt.toMillis() : 0;
-        const timeB = b.createdAt ? b.createdAt.toMillis() : 0;
+        const timeA = a.createdAt?.toMillis?.() ?? (a.createdAt?.seconds ? a.createdAt.seconds * 1000 : 0);
+        const timeB = b.createdAt?.toMillis?.() ?? (b.createdAt?.seconds ? b.createdAt.seconds * 1000 : 0);
         return timeA - timeB;
       });
       
@@ -324,8 +324,8 @@ export default function LinkStorer({ collectionName = 'saved_links', title = 'Sa
           if (!a.isFavorite && b.isFavorite) return 1;
         }
 
-        const timeA = a.createdAt ? a.createdAt.toMillis() : 0;
-        const timeB = b.createdAt ? b.createdAt.toMillis() : 0;
+        const timeA = a.createdAt?.toMillis?.() ?? (a.createdAt?.seconds ? a.createdAt.seconds * 1000 : 0);
+        const timeB = b.createdAt?.toMillis?.() ?? (b.createdAt?.seconds ? b.createdAt.seconds * 1000 : 0);
         return timeA - timeB;
       }),
     }))
@@ -413,11 +413,13 @@ export default function LinkStorer({ collectionName = 'saved_links', title = 'Sa
                 <div className="item-content" onClick={(e) => handleOpen(e, link)}>
                   <img
                     src={`https://s2.googleusercontent.com/s2/favicons?domain=${link.domain}&sz=64`}
-                    onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'block'; }}
+                    onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
                     alt="favicon"
                     className="favicon"
                   />
-                  <Globe className="fallback-icon" size={22} style={{ display: 'none' }} />
+                  <div className="fallback-icon" style={{ display: 'none', width: '24px', height: '24px', alignItems: 'center', justifyContent: 'center', backgroundColor: '#333', color: '#fff', fontSize: '14px', fontWeight: '700', flexShrink: 0, textTransform: 'uppercase' }}>
+                    {link.nickname ? link.nickname.charAt(0) : '?'}
+                  </div>
 
                   <div className="item-text-stack">
                     <span className="item-text">
