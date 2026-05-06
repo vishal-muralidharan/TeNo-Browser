@@ -6,6 +6,7 @@ import { auth, db } from './firebase'
 import LoginPage from './pages/LoginPage'
 import DashboardPage from './pages/DashboardPage'
 import SettingsPage from './pages/SettingsPage'
+import AdminDashboardPage from './pages/AdminDashboardPage'
 import { setupTypingCaret } from '../sm/typingCaret'
 
 const TAB_INDEX = {
@@ -432,6 +433,7 @@ function App() {
             )
           }
         />
+        <Route path="/admin" element={<AdminDashboardPage />} />
         <Route path="*" element={<Navigate to={user ? '/app' : '/login'} replace />} />
       </Routes>
     </BrowserRouter>
