@@ -5,6 +5,7 @@ import { auth } from '../firebase'
 import { useTheme } from '../ThemeContext'
 import { getUiConfig } from '../utils/uiConfig'
 import { useFeatureFlags } from '../FeatureFlagContext'
+import { DEFAULT_FEATURE_FLAGS } from '../utils/featureFlags'
 
 const normalizeLabel = (value) => (value || '').trim().toLowerCase()
 const getDisplayName = (item) => item.nickname || item.title || item.url || 'untitled'
@@ -38,7 +39,11 @@ export default function SettingsPage({
   
   const { theme, styleMode, setTheme, setStyleMode } = useTheme()
   const ui = getUiConfig(styleMode)
-  const { isEnabled } = useFeatureFlags()
+  const { flags, isEnabled, setFlag } = useFeatureFlags()
+  const isModern = styleMode === 'modern'
+
+  const ADMIN_UID = import.meta.env.VITE_ADMIN_UID
+  const isAdmin = !!ADMIN_UID && user?.uid === ADMIN_UID
 
   const getToggleContainerStyle = () => ({
     display: 'flex',
@@ -318,6 +323,136 @@ export default function SettingsPage({
       )}
         </div>
       </main>
+
+      {/* ── Admin Panel (UID-gated) ──────────────────────────────────────── */}
+      {isAdmin && (
+        <section
+          className="settings-card settings-wide-card"
+          style={{
+            marginTop: '32px',
+            border: isModern ? '1px solid color-mix(in srgb, var(--accent-primary) 30%, transparent)' : '1px dashed var(--text-muted)',
+            position: 'relative',
+          }}
+        >
+          {/* Admin badge */}
+          <span style={{
+            position: 'absolute',
+            top: isModern ? '-11px' : '-9px',
+            left: '16px',
+            fontSize: '0.65rem',
+            fontFamily: 'inherit',
+            letterSpacing: isModern ? '0.08em' : '0.15em',
+            textTransform: isModern ? 'none' : 'lowercase',
+            padding: isModern ? '2px 10px' : '1px 6px',
+            borderRadius: isModern ? '20px' : '0',
+            background: isModern ? 'var(--accent-primary)' : 'var(--bg-app)',
+            color: isModern ? 'var(--bg-app)' : 'var(--text-muted)',
+            border: isModern ? 'none' : '1px dashed var(--text-muted)',
+            fontWeight: isModern ? '600' : '400',
+          }}>
+            {isModern ? '⚑ Admin' : '[admin]'}
+          </span>
+
+          <h3 style={{ marginTop: '4px', color: 'var(--text-primary)' }}>Feature Flags</h3>
+          <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '20px', marginTop: '-4px' }}>
+            {isModern
+              ? 'Changes apply globally in real-time for all users.'
+              : '// changes propagate to all users via firestore.'}
+          </p>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
+            {Object.keys(DEFAULT_FEATURE_FLAGS).map((flagKey, index, arr) => {
+              const value = flags[flagKey]
+              const isLast = index === arr.length - 1
+
+              // Human-readable label for each flag
+              const labels = {
+                links:          isModern ? 'Saved Links Tab'   : 'saved links tab',
+                cart:           isModern ? 'Cart Tab'           : 'cart tab',
+                reminders:      isModern ? 'Reminders Tab'      : 'reminders tab',
+                timer:          isModern ? 'Timer Tab'          : 'timer tab',
+                terminal:       isModern ? 'Terminal Panel'     : 'terminal panel',
+                settings:       isModern ? 'Settings Page'      : 'settings page',
+                clickStats:     isModern ? 'Click Statistics'   : 'click statistics',
+                changePassword: isModern ? 'Change Password'    : 'change password',
+              }
+
+              return (
+                <div
+                  key={flagKey}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: isModern ? '12px 4px' : '8px 0',
+                    borderBottom: isLast ? 'none' : '1px solid var(--border-color)',
+                  }}
+                >
+                  <div>
+                    <span style={{ fontSize: '0.875rem', color: 'var(--text-primary)', fontWeight: isModern ? '500' : '400' }}>
+                      {labels[flagKey] || flagKey}
+                    </span>
+                    <span style={{ marginLeft: '8px', fontSize: '0.7rem', color: 'var(--text-muted)', fontFamily: 'inherit' }}>
+                      {isModern ? null : flagKey}
+                    </span>
+                  </div>
+
+                  {/* Toggle switch — minimal gets a text button, modern gets a pill toggle */}
+                  {isModern ? (
+                    <button
+                      type="button"
+                      onClick={() => setFlag(flagKey, !value)}
+                      style={{
+                        position: 'relative',
+                        width: '44px',
+                        height: '24px',
+                        borderRadius: '12px',
+                        border: 'none',
+                        cursor: 'pointer',
+                        padding: '0',
+                        flexShrink: '0',
+                        backgroundColor: value ? 'var(--accent-primary)' : 'var(--bg-surface-hover)',
+                        transition: 'background-color 0.2s ease',
+                      }}
+                      aria-label={`Toggle ${flagKey}`}
+                    >
+                      <span style={{
+                        position: 'absolute',
+                        top: '3px',
+                        left: value ? '23px' : '3px',
+                        width: '18px',
+                        height: '18px',
+                        borderRadius: '50%',
+                        backgroundColor: 'var(--bg-surface)',
+                        transition: 'left 0.2s ease',
+                        boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
+                        display: 'block',
+                      }} />
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setFlag(flagKey, !value)}
+                      style={{
+                        background: 'none',
+                        border: '1px solid var(--border-color)',
+                        color: value ? 'var(--text-primary)' : 'var(--text-muted)',
+                        cursor: 'pointer',
+                        fontFamily: 'inherit',
+                        fontSize: '0.75rem',
+                        padding: '2px 8px',
+                        flexShrink: '0',
+                      }}
+                    >
+                      {value ? '[ on ]' : '[ off ]'}
+                    </button>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        </section>
+      )}
 
       {isPasswordModalOpen && (
         <div className="custom-modal-overlay">
