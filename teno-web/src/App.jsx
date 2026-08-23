@@ -8,6 +8,7 @@ import DashboardPage from './pages/DashboardPage'
 import SettingsPage from './pages/SettingsPage'
 import { setupTypingCaret } from '../sm/typingCaret'
 import { useTheme } from './ThemeContext'
+import { useFeatureFlags } from './FeatureFlagContext'
 import LoadingScreen from './components/LoadingScreen'
 
 const TAB_INDEX = {
@@ -47,6 +48,7 @@ const formatTimerMs = (ms) => {
 
 function App() {
   const { isThemeReady, styleModeChanging, styleMode } = useTheme()
+  const { isEnabled } = useFeatureFlags()
   const [user, setUser] = useState(null)
   const [loadingAuth, setLoadingAuth] = useState(true)
   const [minLoadTimePending, setMinLoadTimePending] = useState(true)
@@ -116,29 +118,31 @@ function App() {
       return undefined
     }
 
-    const unsubLinks = onSnapshot(query(collection(db, 'users', user.uid, 'saved_links')), (snapshot) => {
+    const unsubLinks = isEnabled('links') ? onSnapshot(query(collection(db, 'users', user.uid, 'saved_links')), (snapshot) => {
       const data = snapshot.docs.map((item) => ({ id: item.id, ...item.data() }))
       setSavedLinks(sortLinks(data))
-    })
+    }) : null
 
-    const unsubCart = onSnapshot(query(collection(db, 'users', user.uid, 'cart_items')), (snapshot) => {
+    const unsubCart = isEnabled('cart') ? onSnapshot(query(collection(db, 'users', user.uid, 'cart_items')), (snapshot) => {
       const data = snapshot.docs.map((item) => ({ id: item.id, ...item.data() }))
       setCartItems(sortCartItems(data))
-    })
+    }) : null
 
-    const unsubReminders = onSnapshot(query(collection(db, 'users', user.uid, 'reminders')), (snapshot) => {
+    const unsubReminders = isEnabled('reminders') ? onSnapshot(query(collection(db, 'users', user.uid, 'reminders')), (snapshot) => {
       const data = snapshot.docs.map((item) => ({ id: item.id, ...item.data() }))
       setReminders(sortReminders(data))
-    })
+    }) : null
 
     return () => {
-      unsubLinks()
-      unsubCart()
-      unsubReminders()
+      if (unsubLinks) unsubLinks()
+      if (unsubCart) unsubCart()
+      if (unsubReminders) unsubReminders()
     }
-  }, [user])
+  }, [user, isEnabled])
 
   useEffect(() => {
+    if (!isEnabled('timer')) return
+
     const updateTimer = () => {
       const now = Date.now()
       let calcAccumulated = timerAccumulatedMs
@@ -169,7 +173,7 @@ function App() {
     updateTimer()
     const intervalId = setInterval(updateTimer, 40)
     return () => clearInterval(intervalId)
-  }, [timerState, timerMode, timerStartTime, timerAccumulatedMs, timerTargetDuration])
+  }, [timerState, timerMode, timerStartTime, timerAccumulatedMs, timerTargetDuration, isEnabled])
 
   const migrateExistingData = async (uid) => {
     const collectionsToMigrate = ['saved_links', 'cart_items', 'reminders']
@@ -434,7 +438,7 @@ function App() {
             <Route
               path="/settings"
               element={
-                user ? (
+                user && isEnabled('settings') ? (
                   <SettingsPage
                     user={user}
                     savedLinks={savedLinks}
@@ -443,7 +447,7 @@ function App() {
                     onLogout={handleLogout}
                   />
                 ) : (
-                  <Navigate to="/login" replace />
+                  <Navigate to={user ? '/app' : '/login'} replace />
                 )
               }
             />

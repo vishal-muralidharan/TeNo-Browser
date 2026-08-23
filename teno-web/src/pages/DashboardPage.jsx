@@ -7,6 +7,7 @@ import Terminal from '../components/Terminal'
 import { useTheme } from '../ThemeContext'
 import { getUiConfig } from '../utils/uiConfig'
 import ConfirmModal from '../components/ConfirmModal'
+import { useFeatureFlags } from '../FeatureFlagContext'
 
 export default function DashboardPage({
   user,
@@ -37,13 +38,14 @@ export default function DashboardPage({
   const navigate = useNavigate()
   const { styleMode } = useTheme()
   const ui = getUiConfig(styleMode)
+  const { isEnabled } = useFeatureFlags()
 
   const tabs = [
-    { id: 'links',     label: ui.tabs.links,     component: <LinkStorer collectionName="saved_links" title="Saved Links" user={user} openFormSignal={linksFormToken} onLinkOpen={recordLinkOpen} /> },
-    { id: 'cart',      label: ui.tabs.cart,      component: <LinkStorer collectionName="cart_items" title="Cart" user={user} openFormSignal={cartFormToken} onLinkOpen={recordLinkOpen} /> },
-    { id: 'reminders', label: ui.tabs.reminders, component: <Reminders user={user} /> },
-    { id: 'timer',     label: ui.tabs.timer,     component: <Timer {...timerApi} /> },
-  ]
+    isEnabled('links')     && { id: 'links',     label: ui.tabs.links,     component: <LinkStorer collectionName="saved_links" title="Saved Links" user={user} openFormSignal={linksFormToken} onLinkOpen={recordLinkOpen} /> },
+    isEnabled('cart')      && { id: 'cart',      label: ui.tabs.cart,      component: <LinkStorer collectionName="cart_items" title="Cart" user={user} openFormSignal={cartFormToken} onLinkOpen={recordLinkOpen} /> },
+    isEnabled('reminders') && { id: 'reminders', label: ui.tabs.reminders, component: <Reminders user={user} /> },
+    isEnabled('timer')     && { id: 'timer',     label: ui.tabs.timer,     component: <Timer {...timerApi} /> },
+  ].filter(Boolean)
 
   const handleTabSwitch = (index) => {
     if (activeTab === index) return
@@ -111,9 +113,11 @@ export default function DashboardPage({
             {ui.logo}
           </h1>
           <div className="topbar-actions">
-            <button type="button" className="topbar-action-btn" onClick={() => navigate('/settings')}>
-              {ui.icons.settings} {ui.nav.settings}
-            </button>
+            {isEnabled('settings') && (
+              <button type="button" className="topbar-action-btn" onClick={() => navigate('/settings')}>
+                {ui.icons.settings} {ui.nav.settings}
+              </button>
+            )}
             <button type="button" className="topbar-action-btn" onClick={() => setShowLogoutConfirm(true)}>
               {ui.icons.logout} {ui.nav.logout}
             </button>
@@ -159,36 +163,38 @@ export default function DashboardPage({
 
       {terminalVisible ? <div className="terminal-spacer" style={{ height: `${terminalHeight}px` }} aria-hidden="true" /> : null}
 
-      {terminalVisible ? (
-        <div className="terminal-layer">
-          <Terminal
-            user={user}
-            activeTab={activeTab}
-            setActiveTab={setActiveTab}
-            onExit={() => setTerminalVisible(false)}
-            onHeightChange={setTerminalHeight}
-            savedLinks={savedLinks}
-            cartItems={cartItems}
-            reminders={reminders}
-            requestOpenLinksForm={requestOpenLinksForm}
-            requestOpenCartForm={requestOpenCartForm}
-            deleteLinkByNickname={deleteLinkByNickname}
-            deleteCartItemByNickname={deleteCartItemByNickname}
-            addReminder={addReminder}
-            deleteReminderByIndex={deleteReminderByIndex}
-            deleteAllReminders={deleteAllReminders}
-            onLinkOpen={recordLinkOpen}
-            timerApi={timerApi}
-          />
-        </div>
-      ) : (
-        <button
-          type="button"
-          className="terminal-reopen-bar"
-          onClick={() => setTerminalVisible(true)}
-        >
-          {ui.terminal.reopenBar}
-        </button>
+      {isEnabled('terminal') && (
+        terminalVisible ? (
+          <div className="terminal-layer">
+            <Terminal
+              user={user}
+              activeTab={activeTab}
+              setActiveTab={setActiveTab}
+              onExit={() => setTerminalVisible(false)}
+              onHeightChange={setTerminalHeight}
+              savedLinks={savedLinks}
+              cartItems={cartItems}
+              reminders={reminders}
+              requestOpenLinksForm={requestOpenLinksForm}
+              requestOpenCartForm={requestOpenCartForm}
+              deleteLinkByNickname={deleteLinkByNickname}
+              deleteCartItemByNickname={deleteCartItemByNickname}
+              addReminder={addReminder}
+              deleteReminderByIndex={deleteReminderByIndex}
+              deleteAllReminders={deleteAllReminders}
+              onLinkOpen={recordLinkOpen}
+              timerApi={timerApi}
+            />
+          </div>
+        ) : (
+          <button
+            type="button"
+            className="terminal-reopen-bar"
+            onClick={() => setTerminalVisible(true)}
+          >
+            {ui.terminal.reopenBar}
+          </button>
+        )
       )}
 
       {showLogoutConfirm && (

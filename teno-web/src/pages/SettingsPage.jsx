@@ -4,6 +4,7 @@ import { EmailAuthProvider, reauthenticateWithCredential, updatePassword } from 
 import { auth } from '../firebase'
 import { useTheme } from '../ThemeContext'
 import { getUiConfig } from '../utils/uiConfig'
+import { useFeatureFlags } from '../FeatureFlagContext'
 
 const normalizeLabel = (value) => (value || '').trim().toLowerCase()
 const getDisplayName = (item) => item.nickname || item.title || item.url || 'untitled'
@@ -37,6 +38,7 @@ export default function SettingsPage({
   
   const { theme, styleMode, setTheme, setStyleMode } = useTheme()
   const ui = getUiConfig(styleMode)
+  const { isEnabled } = useFeatureFlags()
 
   const getToggleContainerStyle = () => ({
     display: 'flex',
@@ -236,22 +238,25 @@ export default function SettingsPage({
               <span>full name</span>
               <strong>{user?.displayName || 'unknown'}</strong>
             </div>
-            <button type="button" className="settings-password-trigger" onClick={openPasswordModal}>{ui.settings.changePassword}</button>
+            {isEnabled('changePassword') && (
+              <button type="button" className="settings-password-trigger" onClick={openPasswordModal}>{ui.settings.changePassword}</button>
+            )}
           </article>
 
 
 
           <article className="settings-card">
             <h3>{ui.settings.summary}</h3>
-            <div className="settings-kv"><span>saved links</span><strong>{savedLinks.length}</strong></div>
-            <div className="settings-kv"><span>cart links</span><strong>{cartItems.length}</strong></div>
-            <div className="settings-kv"><span>reminders</span><strong>{reminders.length}</strong></div>
+            {isEnabled('links') && <div className="settings-kv"><span>saved links</span><strong>{savedLinks.length}</strong></div>}
+            {isEnabled('cart') && <div className="settings-kv"><span>cart links</span><strong>{cartItems.length}</strong></div>}
+            {isEnabled('reminders') && <div className="settings-kv"><span>reminders</span><strong>{reminders.length}</strong></div>}
             <div className="settings-kv"><span>unique labels</span><strong>{countUniqueLabels(allItems)}</strong></div>
             <div className="settings-kv"><span>total clicks</span><strong>{totalClicks}</strong></div>
           </article>
         </section>
 
-        <section className="settings-card settings-wide-card">
+      {isEnabled('clickStats') && (
+        <section className="settings-card settings-wide-card" style={{ marginTop: '24px' }}>
           <h3>{ui.settings.clickStats}</h3>
           <div className="settings-stats-grid">
             <div className="settings-stat-box">
@@ -264,33 +269,37 @@ export default function SettingsPage({
             </div>
           </div>
 
-          <div className="settings-list-group">
-            <h4>saved links</h4>
-            {sortedSavedLinks.length === 0 ? (
-              <p className="settings-empty">no saved links yet.</p>
-            ) : (
-              sortedSavedLinks.map((item) => (
-                <div key={item.id} className="settings-list-row">
-                  <span>{`${getDisplayName(item)}${item.label ? ` (${item.label})` : ''}`}</span>
-                  <strong>{getItemClickCount(item)}</strong>
-                </div>
-              ))
-            )}
-          </div>
+          {isEnabled('links') && (
+            <div className="settings-list-group">
+              <h4>saved links</h4>
+              {sortedSavedLinks.length === 0 ? (
+                <p className="settings-empty">no saved links yet.</p>
+              ) : (
+                sortedSavedLinks.map((item) => (
+                  <div key={item.id} className="settings-list-row">
+                    <span>{`${getDisplayName(item)}${item.label ? ` (${item.label})` : ''}`}</span>
+                    <strong>{getItemClickCount(item)}</strong>
+                  </div>
+                ))
+              )}
+            </div>
+          )}
 
-          <div className="settings-list-group">
-            <h4>cart items</h4>
-            {cartItems.length === 0 ? (
-              <p className="settings-empty">no cart items yet.</p>
-            ) : (
-              cartItems.map((item) => (
-                <div key={item.id} className="settings-list-row">
-                  <span>{getDisplayName(item)}</span>
-                  <strong>{getItemClickCount(item)}</strong>
-                </div>
-              ))
-            )}
-          </div>
+          {isEnabled('cart') && (
+            <div className="settings-list-group">
+              <h4>cart items</h4>
+              {cartItems.length === 0 ? (
+                <p className="settings-empty">no cart items yet.</p>
+              ) : (
+                cartItems.map((item) => (
+                  <div key={item.id} className="settings-list-row">
+                    <span>{getDisplayName(item)}</span>
+                    <strong>{getItemClickCount(item)}</strong>
+                  </div>
+                ))
+              )}
+            </div>
+          )}
 
           <div className="settings-list-group">
             <h4>label totals</h4>
@@ -306,6 +315,7 @@ export default function SettingsPage({
             )}
           </div>
         </section>
+      )}
         </div>
       </main>
 

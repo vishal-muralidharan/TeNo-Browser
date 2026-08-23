@@ -1,4 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react'
+import { useFeatureFlags } from '../FeatureFlagContext'
+
 
 const TAB_INDEX = {
   links: 0,
@@ -48,6 +50,7 @@ export default function Terminal({
   onLinkOpen,
   timerApi,
 }) {
+  const { isEnabled } = useFeatureFlags()
   const [input, setInput] = useState('')
   const [outputLines, setOutputLines] = useState([
     { id: 0, text: 'terminal ready. type help for commands.' },
@@ -204,10 +207,10 @@ export default function Terminal({
       if (!arg) {
         pushOutputLine('help sections:')
         pushOutputLine('- general')
-        pushOutputLine('- ln')
-        pushOutputLine('- ct')
-        pushOutputLine('- rm')
-        pushOutputLine('- tm')
+        if (isEnabled('links')) pushOutputLine('- ln')
+        if (isEnabled('cart')) pushOutputLine('- ct')
+        if (isEnabled('reminders')) pushOutputLine('- rm')
+        if (isEnabled('timer')) pushOutputLine('- tm')
         pushOutputLine("type help [section] for more detail.")
         return
       }
@@ -249,7 +252,8 @@ export default function Terminal({
     }
 
     if (command === 'cd') {
-      if (['links', 'cart', 'reminders', 'timer'].includes(arg)) {
+      const allowedTabs = ['links', 'cart', 'reminders', 'timer'].filter(t => isEnabled(t))
+      if (allowedTabs.includes(arg)) {
         navigateTo(arg)
         pushOutputLine(`switched to ${arg}.`)
       } else {
@@ -259,6 +263,10 @@ export default function Terminal({
     }
 
     if (command === 'ln') {
+      if (!isEnabled('links')) {
+        pushOutputLine('links module is disabled.')
+        return
+      }
       const subcommand = tokens[1] || ''
       const value = tokens.slice(2).join(' ')
 
@@ -302,6 +310,10 @@ export default function Terminal({
     }
 
     if (command === 'ct') {
+      if (!isEnabled('cart')) {
+        pushOutputLine('cart module is disabled.')
+        return
+      }
       const subcommand = tokens[1] || ''
       const value = tokens.slice(2).join(' ')
 
@@ -337,6 +349,10 @@ export default function Terminal({
     }
 
     if (command === 'rm') {
+      if (!isEnabled('reminders')) {
+        pushOutputLine('reminders module is disabled.')
+        return
+      }
       const subcommand = tokens[1] || ''
       const value = tokens.slice(2).join(' ')
 
@@ -373,6 +389,10 @@ export default function Terminal({
     }
 
     if (command === 'tm') {
+      if (!isEnabled('timer')) {
+        pushOutputLine('timer module is disabled.')
+        return
+      }
       const subcommand = tokens[1] || ''
       const value = tokens[2]
 
