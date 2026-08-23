@@ -39,6 +39,10 @@ export default function LinkStorer({ collectionName = 'saved_links', title = 'Sa
   
   // FLIP animation state
   const prevRectsRef = useRef({});
+  // Tracks the serialized item order from the previous render.
+  // Used to skip FLIP when Firestore fires a second snapshot with identical order
+  // (e.g. after serverTimestamp resolution, or after an optimistic label reorder).
+  const prevFlattenedKeyRef = useRef('');
 
   const handleMoveSection = async (e, sectionLabel, direction) => {
     e.preventDefault();
@@ -469,12 +473,30 @@ export default function LinkStorer({ collectionName = 'saved_links', title = 'Sa
   const isModern = styleMode === 'modern';
 
   useLayoutEffect(() => {
+    // Only run FLIP in modern mode — classic mode has no drag-reorder animation.
+    if (!isModern) {
+      prevRectsRef.current = {};
+      prevFlattenedKeyRef.current = '';
+      return;
+    }
+
+    // Compute a stable key representing the current order+set of item IDs.
+    const currentKey = flattenedDisplay.map(e => e.link.id).join(',');
+
+    // Guard: if the serialized order hasn't changed since last render, skip the FLIP.
+    // This prevents double-firing caused by Firestore sending a second snapshot after
+    // serverTimestamp resolution (add-link) or after an optimistic label reorder write.
+    if (currentKey === prevFlattenedKeyRef.current) {
+      return;
+    }
+    prevFlattenedKeyRef.current = currentKey;
+
     const elements = Array.from(document.querySelectorAll('.list-item[data-link-id]'));
     const currentRects = {};
 
     // 0. Crucial fix: Clear any mid-flight animations BEFORE reading the new bounding rect.
-    // If a previous FLIP animation was still running, getBoundingClientRect would read the 
-    // visual position (with transform) rather than the new natural DOM position, causing items to fly away.
+    // If a previous FLIP animation was still running, getBoundingClientRect would read the
+    // visual position (with transform) rather than the new natural DOM position.
     elements.forEach(el => {
       el.style.transition = 'none';
       el.style.transform = 'none';
@@ -486,7 +508,9 @@ export default function LinkStorer({ collectionName = 'saved_links', title = 'Sa
       currentRects[id] = el.getBoundingClientRect();
     });
 
-    // 2. Invert (apply transform to move element back to old position instantly)
+    // 2. Invert (apply transform to move element back to old position instantly).
+    // Skip items that have no previous rect (newly added items) — they should just appear
+    // in place without animating FROM somewhere, which would cause a jarring flash.
     elements.forEach(el => {
       const id = el.getAttribute('data-link-id');
       const prevRect = prevRectsRef.current[id];
@@ -520,7 +544,7 @@ export default function LinkStorer({ collectionName = 'saved_links', title = 'Sa
           if (deltaX !== 0 || deltaY !== 0) {
             el.style.transform = 'translate(0, 0)';
             el.style.transition = 'transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1)';
-            
+
             // Clear transition after animation to prevent layout thrashing on window resize
             clearTimeout(el._flipTimeout);
             el._flipTimeout = setTimeout(() => {
@@ -534,7 +558,7 @@ export default function LinkStorer({ collectionName = 'saved_links', title = 'Sa
 
     // Save for next render
     prevRectsRef.current = currentRects;
-  }, [flattenedDisplay]);
+  }, [flattenedDisplay, isModern]);
 
   const renderLinkCells = (sectionLinks, startIndex = 0, showLabelChip = true, sectionKey = '', gridClassName = '', gridStyle = {}) => {
     if (sectionLinks.length === 0) {
